@@ -1,210 +1,125 @@
-# Roadmap: IntraChat
+# ROADMAP: IntraChat
 
+**Project:** IntraChat
+**Milestone:** v1
 **Created:** 2026-04-15
-**Milestone:** v1.0 — Корпоративный мессенджер (MVP)
-**Goal:** Полнофункциональный PWA-мессенджер для ~100 сотрудников
+**Granularity:** Standard
+**Coverage:** 52/52 v1 requirements mapped
 
 ---
 
-## Phase 1 — База данных и схема
+## Phases
 
-**Goal:** Полная схема БД с RLS, Storage bucket, миграции применены к Supabase Cloud.
-
-**Requirements:** DB-01..DB-10
-
-**Plans:**
-1. Создать миграцию: таблицы profiles, groups, group_members, folders, folder_items
-2. Создать миграцию: messages, message_reads, message_reactions, message_attachments
-3. Создать миграцию: direct_chats, direct_messages
-4. RLS-политики для всех таблиц
-5. Storage bucket "attachments" + политики доступа
-6. Включить Realtime для messages и direct_messages
-7. Сгенерировать `database.types.ts`
-
-**Depends on:** —
-**Agent:** database-architect
+- [ ] **Phase 1: Database & Schema** - Полная схема БД с RLS, Storage bucket, миграции применены к Supabase Cloud
+- [ ] **Phase 2: Authentication** - Вход по email+password, сессия, middleware, защита роутов
+- [ ] **Phase 3: Layout & Sidebar** - Root layout, Sidebar с иерархией групп и личными папками
+- [ ] **Phase 4: Chat & Realtime** - Текстовые сообщения в реальном времени, статусы прочтения, реакции
+- [ ] **Phase 5: Attachments** - Фото, файлы, голосовые сообщения, видео-кружки
+- [ ] **Phase 6: DM & Presence** - Личная переписка, индикатор "печатает..."
+- [ ] **Phase 7: Search & Pinned** - Поиск по чатам и сообщениям, закреп сообщений
+- [ ] **Phase 8: Admin Panel** - Управление пользователями и группами
+- [ ] **Phase 9: PWA** - Manifest, service worker, установка на домашний экран
+- [ ] **Phase 10: QA** - Security review, RLS audit, исправление багов
 
 ---
 
-## Phase 2 — Аутентификация и middleware
+## Phase Details
 
-**Goal:** Пользователь входит по email+password, сессия сохраняется, неавторизованный редиректится на /login.
+### Phase 1: Database & Schema
+**Goal**: Полная схема PostgreSQL с RLS-политиками, Storage bucket и Realtime применены к Supabase Cloud; сгенерированы TypeScript типы.
+**Depends on**: Nothing
+**Requirements**: DB-01, DB-02, DB-03, DB-04, DB-05, DB-06, DB-07, DB-08, DB-09, DB-10
+**Success Criteria** (what must be TRUE):
+  1. `supabase db push` выполняется без ошибок
+  2. Все таблицы имеют RLS enabled (проверяется через `SELECT tablename FROM pg_tables WHERE schemaname='public'`)
+  3. `supabase gen types typescript --local` генерирует корректный `database.types.ts`
+  4. Storage bucket "attachments" существует с правильными политиками
+  5. Realtime включён для таблиц messages и direct_messages
 
-**Requirements:** AUTH-01..AUTH-05
+### Phase 2: Authentication
+**Goal**: Пользователь входит по email+password, сессия сохраняется после перезагрузки, middleware перенаправляет неавторизованных на /login, роут /admin защищён.
+**Depends on**: Phase 1
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05
+**Success Criteria** (what must be TRUE):
+  1. Страница /login рендерится без ошибок
+  2. Успешный вход перенаправляет на главный чат
+  3. Обновление страницы не разлогинивает пользователя
+  4. Переход на /admin без роли admin возвращает 403/redirect
 
-**Plans:**
-1. Страница `/login` с формой (email + пароль)
-2. Server Actions: `signIn`, `signOut`
-3. Middleware: проверка сессии, редирект
-4. `createServerClient` / `createBrowserClient` в lib/supabase/
-5. Защита роута `/admin` — только для role=admin
+### Phase 3: Layout & Sidebar
+**Goal**: Пользователь видит левую панель с иерархией групп (2 уровня) и личными папками, может переходить между группами.
+**Depends on**: Phase 2
+**Requirements**: GRP-01, GRP-02, GRP-03, GRP-04, GRP-05
+**Success Criteria** (what must be TRUE):
+  1. Sidebar отображает группы с подгруппами корректно
+  2. Личные папки отображаются и разворачиваются
+  3. Переход по группам меняет URL и контент
+  4. Активная группа подсвечена в sidebar
 
-**Depends on:** Phase 1
-**Agent:** backend-engineer + frontend-developer
+### Phase 4: Chat & Realtime
+**Goal**: Пользователи обмениваются текстовыми сообщениями в реальном времени, видят статусы прочтения ✓/✓✓ и реакции.
+**Depends on**: Phase 3
+**Requirements**: MSG-01, MSG-02, MSG-03, MSG-04, MSG-05, MSG-06, MSG-07, MSG-08
+**Success Criteria** (what must be TRUE):
+  1. Сообщение появляется у получателя без перезагрузки (< 500ms)
+  2. Reply отображает цитату с именем и текстом
+  3. Статус ✓ меняется на ✓✓ после прочтения
+  4. Реакция отображается у всех участников в реальном времени
 
----
+### Phase 5: Attachments
+**Goal**: Пользователь отправляет фото (≤10MB), файлы (≤50MB), голосовые (WebM ≤5MB) и видео-кружки (MP4 ≤30MB ≤60сек).
+**Depends on**: Phase 4
+**Requirements**: ATT-01, ATT-02, ATT-03, ATT-04, ATT-05, ATT-06, ATT-07, ATT-08
+**Success Criteria** (what must be TRUE):
+  1. Изображение отправляется и отображается в чате с превью
+  2. Голосовое сообщение записывается и воспроизводится встроенным плеером
+  3. Видео-кружок записывается, отображается круглым, воспроизводится
+  4. Файл-карточка показывает имя, размер и ссылку на скачивание
+  5. Файлы > лимита отклоняются с сообщением об ошибке
 
-## Phase 3 — Layout, Sidebar, группы, папки
+### Phase 6: DM & Presence
+**Goal**: Пользователи переписываются в личке, видят индикатор "печатает..." в реальном времени.
+**Depends on**: Phase 5
+**Requirements**: DM-01, DM-02, DM-03, DM-04, MSG-06
+**Success Criteria** (what must be TRUE):
+  1. DM-чат открывается с любым пользователем из списка
+  2. "Печатает..." появляется в течение 500ms после начала набора
+  3. Все типы вложений работают в DM
 
-**Goal:** Пользователь видит левую панель с иерархией групп и личными папками, может переходить между группами.
+### Phase 7: Search & Pinned
+**Goal**: Пользователь находит чаты и сообщения через поиск, видит закреплённые сообщения в шапке.
+**Depends on**: Phase 4
+**Requirements**: SCH-01, SCH-02, PIN-01, PIN-02
+**Success Criteria** (what must be TRUE):
+  1. Поиск по названию группы возвращает результаты мгновенно
+  2. Полнотекстовый поиск по сообщениям возвращает релевантные результаты
+  3. Закреплённое сообщение видно в шапке чата
 
-**Requirements:** GRP-01..GRP-05
+### Phase 8: Admin Panel
+**Goal**: Администратор управляет пользователями и группами через веб-интерфейс /admin.
+**Depends on**: Phase 3
+**Requirements**: ADM-01, ADM-02, ADM-03, ADM-04
+**Success Criteria** (what must be TRUE):
+  1. /admin недоступен для роли user
+  2. Новый пользователь создаётся и может войти
+  3. Деактивированный пользователь не может войти
+  4. Группа создаётся, редактируется, удаляется
 
-**Plans:**
-1. Root layout `(main)` с Sidebar + основная область
-2. Компонент Sidebar: список групп (2 уровня), папки, DM-секция
-3. Server Action: `getGroups`, `getFolders`, `getFolderItems`
-4. Страница `[groupId]/page.tsx` — заглушка чата
-5. Создание/перемещение групп в папки (Server Actions)
+### Phase 9: PWA
+**Goal**: Приложение устанавливается на iOS и Android как нативное с иконкой и splash-screen.
+**Depends on**: Phase 2
+**Requirements**: PWA-01, PWA-02, PWA-03, PWA-04
+**Success Criteria** (what must be TRUE):
+  1. Chrome на Android показывает баннер "Добавить на главный экран"
+  2. Safari на iOS позволяет добавить на домашний экран с правильной иконкой
+  3. Приложение открывается в standalone-режиме (без адресной строки)
 
-**Depends on:** Phase 2
-**Agent:** frontend-developer + backend-engineer
-
----
-
-## Phase 4 — Чат и Realtime
-
-**Goal:** Пользователи обмениваются текстовыми сообщениями в реальном времени, видят статусы прочтения.
-
-**Requirements:** MSG-01..MSG-08
-
-**Plans:**
-1. `ChatWindow` + `MessageList` + `MessageInput` компоненты
-2. `useRealtime` хук — подписка на новые сообщения в группе
-3. Server Actions: `sendMessage`, `deleteMessage`, `markAsRead`
-4. Infinite scroll / pagination истории сообщений
-5. Reply-UI — цитата при ответе
-6. Статусы ✓/✓✓ на пузырях своих сообщений
-7. Реакции: `addReaction`, `removeReaction`, оверлей эмодзи
-8. Realtime для реакций и статусов прочтения
-
-**Depends on:** Phase 3
-**Agent:** frontend-developer + backend-engineer
-
----
-
-## Phase 5 — Вложения
-
-**Goal:** Пользователь отправляет фото, файлы, голосовые сообщения и видео-кружки.
-
-**Requirements:** ATT-01..ATT-08
-
-**Plans:**
-1. `/api/upload` route: приём FormData, валидация, загрузка в Storage
-2. `useMediaRecorder` хук — запись голоса и видео-кружков
-3. UI: кнопки вложений в MessageInput (скрепка, микрофон, кружок)
-4. `MessageBubble` — отображение вложений: изображение, файл-карточка, аудиоплеер
-5. Круглый видеоплеер для видео-кружков
-6. Lightbox для просмотра изображений в полном размере
-7. Signed URLs через Server Action `getAttachmentUrl`
-
-**Depends on:** Phase 4
-**Agent:** backend-engineer + frontend-developer
-
----
-
-## Phase 6 — DM и индикатор "печатает..."
-
-**Goal:** Пользователи переписываются в личке, видят индикатор набора текста.
-
-**Requirements:** DM-01..DM-04, MSG-06
-
-**Plans:**
-1. Server Actions: `getOrCreateDirectChat`, `sendDirectMessage`
-2. Страница `dm/[chatId]/page.tsx` — тот же ChatWindow, другой источник
-3. `usePresence` хук — Supabase Presence для "печатает..."
-4. DM-секция в Sidebar с именами участников
-5. Статус прочтения в DM (те же механизмы)
-
-**Depends on:** Phase 5
-**Agent:** frontend-developer + backend-engineer
-
----
-
-## Phase 7 — Поиск и закреп
-
-**Goal:** Пользователь находит сообщения/чаты через поиск, видит закреплённые сообщения.
-
-**Requirements:** SCH-01..SCH-02, PIN-01..PIN-02
-
-**Plans:**
-1. Глобальная строка поиска в шапке Sidebar
-2. Server Action `searchGroups` — поиск по названиям
-3. Server Action `searchMessages` — full-text поиск в открытом чате (PostgreSQL `to_tsvector`)
-4. Компонент результатов поиска
-5. Server Actions: `pinMessage`, `unpinMessage`
-6. Отображение закреплённого сообщения под шапкой чата
-
-**Depends on:** Phase 4
-**Agent:** frontend-developer + backend-engineer
-
----
-
-## Phase 8 — Админ-панель
-
-**Goal:** Администратор управляет пользователями и группами через веб-интерфейс.
-
-**Requirements:** ADM-01..ADM-04
-
-**Plans:**
-1. Layout `/admin` — проверка роли на сервере
-2. Страница `/admin/users` — список, создание, деактивация
-3. Страница `/admin/groups` — CRUD групп, управление участниками
-4. Server Actions: `createUser`, `deactivateUser`, `createGroup`, `updateGroup`, `deleteGroup`, `addMember`, `removeMember`
-
-**Depends on:** Phase 3
-**Agent:** frontend-developer + backend-engineer
-
----
-
-## Phase 9 — PWA
-
-**Goal:** Приложение устанавливается на iOS и Android как нативное.
-
-**Requirements:** PWA-01..PWA-04
-
-**Plans:**
-1. `next-pwa` конфигурация в `next.config.js`
-2. `manifest.json` — имя, описание, иконки (192x192, 512x512), тема
-3. Иконки приложения (dark theme, логотип IntraChat)
-4. Метатеги в root layout (`apple-touch-icon`, `theme-color`, `viewport`)
-5. Тест установки на iOS (Safari) и Android (Chrome)
-
-**Depends on:** Phase 2
-**Agent:** frontend-developer
-
----
-
-## Phase 10 — QA и полировка
-
-**Goal:** Все критичные баги исправлены, RLS проверен, UX без явных проблем.
-
-**Plans:**
-1. QA-агент: проверка RLS-политик для всех таблиц
-2. QA-агент: security review (нет service_role на клиенте, Signed URLs, проверка роли)
-3. QA-агент: функциональное тестирование edge cases
-4. Исправление найденных проблем
-5. Финальный `npm run build` — без ошибок
-
-**Depends on:** Phase 9
-**Agent:** qa-reviewer
-
----
-
-## Milestone Summary
-
-| Phase | Name | Agent | Deps |
-|-------|------|-------|------|
-| 1 | База данных и схема | database-architect | — |
-| 2 | Аутентификация | backend + frontend | 1 |
-| 3 | Layout + Sidebar + группы | frontend + backend | 2 |
-| 4 | Чат + Realtime | frontend + backend | 3 |
-| 5 | Вложения | backend + frontend | 4 |
-| 6 | DM + "печатает..." | frontend + backend | 5 |
-| 7 | Поиск + закреп | frontend + backend | 4 |
-| 8 | Админ-панель | frontend + backend | 3 |
-| 9 | PWA | frontend | 2 |
-| 10 | QA + полировка | qa-reviewer | 9 |
-
----
-*Created: 2026-04-15*
+### Phase 10: QA
+**Goal**: Все критичные баги исправлены, RLS проверен, финальная сборка без ошибок.
+**Depends on**: Phase 9
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, DB-08
+**Success Criteria** (what must be TRUE):
+  1. `npm run build` завершается без ошибок и warnings
+  2. qa-reviewer не находит критичных нарушений RLS
+  3. Нет service_role ключа в клиентском коде
+  4. Все Signed URLs используются вместо публичных ссылок
