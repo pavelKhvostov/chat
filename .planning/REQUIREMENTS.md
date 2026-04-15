@@ -22,7 +22,7 @@
 - [ ] **DB-05**: Таблица message_reads (статусы прочтения)
 - [ ] **DB-06**: Таблица message_reactions (эмодзи реакции)
 - [ ] **DB-07**: Таблицы direct_chats + direct_messages
-- [ ] **DB-08**: RLS включён для всех таблиц
+- [x] **DB-08**: RLS включён для всех таблиц
 - [ ] **DB-09**: Realtime включён для messages и direct_messages
 - [ ] **DB-10**: Storage bucket "attachments" настроен с политиками
 
