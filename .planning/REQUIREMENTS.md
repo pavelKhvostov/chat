@@ -15,13 +15,13 @@
 
 ### Database & Schema
 
-- [ ] **DB-01**: Таблица profiles (id, email, display_name, avatar_url, role, is_active)
-- [ ] **DB-02**: Таблицы groups + group_members (иерархия, parent_id)
-- [ ] **DB-03**: Таблицы folders + folder_items (личные папки)
-- [ ] **DB-04**: Таблица messages (soft delete, reply_to, attachments FK)
-- [ ] **DB-05**: Таблица message_reads (статусы прочтения)
-- [ ] **DB-06**: Таблица message_reactions (эмодзи реакции)
-- [ ] **DB-07**: Таблицы direct_chats + direct_messages
+- [x] **DB-01**: Таблица profiles (id, email, display_name, avatar_url, role, is_active)
+- [x] **DB-02**: Таблицы groups + group_members (иерархия, parent_id)
+- [x] **DB-03**: Таблицы folders + folder_items (личные папки)
+- [x] **DB-04**: Таблица messages (soft delete, reply_to, attachments FK)
+- [x] **DB-05**: Таблица message_reads (статусы прочтения)
+- [x] **DB-06**: Таблица message_reactions (эмодзи реакции)
+- [x] **DB-07**: Таблицы direct_chats + direct_messages
 - [x] **DB-08**: RLS включён для всех таблиц
 - [ ] **DB-09**: Realtime включён для messages и direct_messages
 - [ ] **DB-10**: Storage bucket "attachments" настроен с политиками
