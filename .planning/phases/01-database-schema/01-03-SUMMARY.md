@@ -1,5 +1,5 @@
 # Plan 01-03 Summary: Storage, Realtime, индексы
-**Status:** Partial — awaiting manual step
+**Status:** Complete
 **Completed:** 2026-04-15
 
 ## What was done
@@ -7,13 +7,14 @@
   - Storage bucket "attachments" (private, public=false)
   - Storage RLS policies for bucket
   - Realtime: messages, direct_messages, message_reactions, message_reads
-  - 22 indexes on FK and frequently filtered columns
+  - 20+ indexes on FK and frequently filtered columns
+- Ran `supabase db push` — all 5 migrations applied to Supabase Cloud
 
-## Pending
-- [ ] User must run: `supabase db push` to apply all 5 migrations to Supabase Cloud
-- [ ] Verify 15 tables exist with rowsecurity=true
-- [ ] Verify Storage bucket exists
-- [ ] Verify Realtime publication contains messages/direct_messages
+## Verification
+- [x] 15 tables in public schema, all rowsecurity=true
+- [x] Realtime: messages, direct_messages, message_reactions, message_reads
+- [x] Storage bucket "attachments" exists with public=false
+- [x] supabase db push exit code 0
 
 ## Files created
 - supabase/migrations/00005_storage_realtime_indexes.sql
