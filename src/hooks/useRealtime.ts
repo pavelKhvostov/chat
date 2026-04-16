@@ -6,6 +6,7 @@ import { type Tables } from '@/lib/types/database.types'
 
 type RealtimeMessage = Tables<'messages'>
 type RealtimeRead = { message_id: string; user_id: string }
+type RealtimeReaction = Tables<'message_reactions'>
 
 interface UseRealtimeOptions {
   groupId: string
@@ -13,47 +14,41 @@ interface UseRealtimeOptions {
   onUpdate: (msg: RealtimeMessage) => void
   onDelete: (id: string) => void
   onRead: (read: RealtimeRead) => void
+  onReactionAdd: (reaction: RealtimeReaction) => void
+  onReactionRemove: (reaction: Pick<RealtimeReaction, 'id' | 'message_id' | 'emoji' | 'user_id'>) => void
 }
 
-export function useRealtime({ groupId, onInsert, onUpdate, onDelete, onRead }: UseRealtimeOptions): void {
-  const onInsertRef = useRef(onInsert)
-  const onUpdateRef = useRef(onUpdate)
-  const onDeleteRef = useRef(onDelete)
-  const onReadRef = useRef(onRead)
-  onInsertRef.current = onInsert
-  onUpdateRef.current = onUpdate
-  onDeleteRef.current = onDelete
-  onReadRef.current = onRead
+export function useRealtime(options: UseRealtimeOptions): void {
+  const refs = useRef(options)
+  refs.current = options
 
   useEffect(() => {
     const supabase = createClient()
+    const { groupId } = refs.current
 
     const channel = supabase
       .channel(`group:${groupId}`)
-      .on(
-        'postgres_changes',
+      .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `group_id=eq.${groupId}` },
-        (payload) => onInsertRef.current(payload.new as RealtimeMessage)
-      )
-      .on(
-        'postgres_changes',
+        (p) => refs.current.onInsert(p.new as RealtimeMessage))
+      .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'messages', filter: `group_id=eq.${groupId}` },
-        (payload) => onUpdateRef.current(payload.new as RealtimeMessage)
-      )
-      .on(
-        'postgres_changes',
+        (p) => refs.current.onUpdate(p.new as RealtimeMessage))
+      .on('postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'messages', filter: `group_id=eq.${groupId}` },
-        (payload) => onDeleteRef.current((payload.old as { id: string }).id)
-      )
-      .on(
-        'postgres_changes',
+        (p) => refs.current.onDelete((p.old as { id: string }).id))
+      .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'message_reads' },
-        (payload) => onReadRef.current(payload.new as RealtimeRead)
-      )
+        (p) => refs.current.onRead(p.new as RealtimeRead))
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'message_reactions' },
+        (p) => refs.current.onReactionAdd(p.new as RealtimeReaction))
+      .on('postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'message_reactions' },
+        (p) => refs.current.onReactionRemove(p.old as Pick<RealtimeReaction, 'id' | 'message_id' | 'emoji' | 'user_id'>))
       .subscribe()
 
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [groupId])
+    return () => { supabase.removeChannel(channel) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options.groupId])
 }

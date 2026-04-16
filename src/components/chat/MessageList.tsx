@@ -11,6 +11,7 @@ interface MessageListProps {
   isLoadingMore: boolean
   onLoadMore: () => void
   onReply: (message: MessageWithRelations) => void
+  onDelete: (id: string) => void
 }
 
 export function MessageList({
@@ -20,6 +21,7 @@ export function MessageList({
   isLoadingMore,
   onLoadMore,
   onReply,
+  onDelete,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLDivElement>(null)
@@ -74,6 +76,7 @@ export function MessageList({
           message={message}
           currentUserId={currentUserId}
           onReply={onReply}
+          onDelete={onDelete}
         />
       ))}
       <div ref={bottomRef} />

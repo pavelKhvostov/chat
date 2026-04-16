@@ -8,13 +8,14 @@ interface MessageBubbleProps {
   message: MessageWithRelations
   currentUserId: string
   onReply: (message: MessageWithRelations) => void
+  onDelete: (id: string) => void
 }
 
 type ReactionGroup = { emoji: string; count: number; reacted: boolean }
 
 const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '👏']
 
-export function MessageBubble({ message, currentUserId, onReply }: MessageBubbleProps) {
+export function MessageBubble({ message, currentUserId, onReply, onDelete }: MessageBubbleProps) {
   const isOwn = message.sender_id === currentUserId
   const isDeleted = message.deleted_at !== null
 
@@ -31,73 +32,77 @@ export function MessageBubble({ message, currentUserId, onReply }: MessageBubble
 
   const isRead = message.reads.some((r) => r.user_id !== currentUserId)
 
+  const handleDelete = () => {
+    onDelete(message.id) // оптимистично
+    deleteMessage(message.id) // server action
+  }
+
   return (
-    <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} group mb-1`}>
-      {/* Имя отправителя (только для чужих сообщений) */}
+    <div className={`relative flex flex-col ${isOwn ? 'items-end' : 'items-start'} group mb-1`}>
+      {/* Имя отправителя (только для чужих) */}
       {!isOwn && (
         <span className="text-xs text-indigo-300 font-medium mb-0.5 ml-3">
-          {message.sender.display_name}
+          {message.sender?.display_name}
         </span>
       )}
 
-      {/* Строка с action-кнопками и пузырём */}
-      <div className={`flex items-center gap-1 mb-1 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-        {/* Кнопки Reply и Delete — видны только при group-hover */}
-        {!isDeleted && (
-          <>
-            <button
-              onClick={() => onReply(message)}
-              className="p-1 rounded text-white/30 hover:text-white/70 hover:bg-white/10 transition-colors opacity-0 group-hover:opacity-100"
-            >
-              <Reply size={14} strokeWidth={1.5} />
-            </button>
-            {isOwn && (
-              <button
-                onClick={() => deleteMessage(message.id)}
-                className="p-1 rounded text-white/30 hover:text-red-400 hover:bg-red-400/10 transition-colors opacity-0 group-hover:opacity-100"
-              >
-                <Trash2 size={14} strokeWidth={1.5} />
-              </button>
-            )}
-          </>
+      {/* Пузырь */}
+      <div
+        className={`max-w-[72%] px-3 py-2 rounded-2xl text-sm ${
+          isOwn
+            ? 'bg-indigo-600 text-white rounded-br-sm'
+            : 'bg-[#1e2c3a] text-gray-100 rounded-bl-sm'
+        }`}
+      >
+        {/* Reply цитата */}
+        {message.reply && !isDeleted && (
+          <div className="border-l-2 border-indigo-400/60 pl-2 mb-1.5 text-xs opacity-80">
+            <p className="truncate text-white/70">{message.reply.content}</p>
+          </div>
         )}
 
-        {/* Пузырь сообщения */}
-        <div
-          className={`max-w-[70%] px-3 py-2 rounded-2xl text-sm ${
-            isOwn
-              ? 'bg-indigo-600 text-white rounded-br-sm'
-              : 'bg-[#1e2c3a] text-gray-100 rounded-bl-sm'
-          }`}
-        >
-          {/* Reply цитата */}
-          {message.reply && !isDeleted && (
-            <div className="border-l-2 border-indigo-400/60 pl-2 mb-1.5 text-xs opacity-80">
-              <p className="truncate text-white/70">{message.reply.content}</p>
-            </div>
+        {/* Контент */}
+        {isDeleted
+          ? <span className="italic text-white/30 text-xs">Сообщение удалено</span>
+          : <span className="leading-relaxed whitespace-pre-wrap break-words">{message.content}</span>
+        }
+
+        {/* Время + галочки */}
+        <div className="flex items-center justify-end gap-1 mt-0.5">
+          <span className="font-mono text-[10px] opacity-50">
+            {new Date(message.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+          {isOwn && !isDeleted && (
+            isRead
+              ? <CheckCheck size={12} strokeWidth={2} className="text-indigo-300 flex-shrink-0" />
+              : <Check size={12} strokeWidth={2} className="text-white/40 flex-shrink-0" />
           )}
-
-          {/* Контент */}
-          {isDeleted
-            ? <span className="italic text-gray-400 text-xs">Сообщение удалено</span>
-            : <span className="leading-relaxed whitespace-pre-wrap break-words">{message.content}</span>
-          }
-
-          {/* Время + статус прочтения */}
-          <div className="flex items-center justify-end gap-1 mt-0.5">
-            <span className="font-mono text-[10px] opacity-50">
-              {new Date(message.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-            </span>
-            {isOwn && !isDeleted && (
-              isRead
-                ? <CheckCheck size={12} strokeWidth={2} className="text-indigo-300 flex-shrink-0" />
-                : <Check size={12} strokeWidth={2} className="text-white/40 flex-shrink-0" />
-            )}
-          </div>
         </div>
       </div>
 
-      {/* Реакции под пузырём */}
+      {/* Action кнопки — абсолютные, не сжимают пузырь */}
+      {!isDeleted && (
+        <div className={`absolute top-5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${
+          isOwn ? '-left-16' : '-right-16'
+        }`}>
+          <button
+            onClick={() => onReply(message)}
+            className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/80 transition-colors"
+          >
+            <Reply size={13} strokeWidth={1.5} />
+          </button>
+          {isOwn && (
+            <button
+              onClick={handleDelete}
+              className="p-1.5 rounded-full bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-colors"
+            >
+              <Trash2 size={13} strokeWidth={1.5} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Реакции */}
       {groupedReactions.length > 0 && (
         <div className={`flex flex-wrap gap-1 mt-0.5 mb-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
           {groupedReactions.map(({ emoji, count, reacted }) => (
@@ -116,9 +121,9 @@ export function MessageBubble({ message, currentUserId, onReply }: MessageBubble
         </div>
       )}
 
-      {/* Quick reaction picker — виден только при group-hover */}
+      {/* Quick reaction picker */}
       {!isDeleted && (
-        <div className={`flex gap-0.5 mb-1 opacity-0 group-hover:opacity-100 transition-opacity ${isOwn ? 'justify-end' : 'justify-start'}`}>
+        <div className={`flex gap-0.5 mb-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${isOwn ? 'justify-end' : 'justify-start'}`}>
           {QUICK_REACTIONS.map((emoji) => (
             <button
               key={emoji}

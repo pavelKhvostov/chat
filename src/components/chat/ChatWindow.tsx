@@ -40,7 +40,6 @@ export function ChatWindow({
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [replyTo, setReplyTo] = useState<ReplyTarget | null>(null)
 
-  // Кеш профилей — заполняется с сервера
   const profileCache = useRef<Map<string, Profile>>(new Map())
 
   useEffect(() => {
@@ -51,11 +50,7 @@ export function ChatWindow({
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const getProfile = useCallback((userId: string): Profile => {
-    return profileCache.current.get(userId) ?? {
-      id: userId,
-      display_name: 'Участник',
-      avatar_url: null,
-    }
+    return profileCache.current.get(userId) ?? { id: userId, display_name: 'Участник', avatar_url: null }
   }, [])
 
   useRealtime({
@@ -68,13 +63,11 @@ export function ChatWindow({
       setMessages((prev) => {
         const replyMsg = msg.reply_to ? prev.find((m) => m.id === msg.reply_to) : null
         const reply = replyMsg ? {
-          id: replyMsg.id,
-          content: replyMsg.content,
+          id: replyMsg.id, content: replyMsg.content,
           sender: { display_name: replyMsg.sender?.display_name ?? 'Участник' },
         } : null
 
         if (msg.sender_id === currentUserId) {
-          // Заменяем temp-сообщение: ищем по correlationId в reply_to или по content
           const withoutTemp = prev.filter(
             (m) => !(m.id.startsWith('temp-') && m.content === msg.content && m.sender_id === currentUserId)
           )
@@ -85,36 +78,40 @@ export function ChatWindow({
           return [...prev, { ...msg, sender, reply, reactions: [], reads: [] } as MessageWithRelations]
         }
       })
-
-      if (msg.sender_id !== currentUserId) {
-        markMessagesAsRead([msg.id])
-      }
+      if (msg.sender_id !== currentUserId) markMessagesAsRead([msg.id])
     }, [currentUserId, currentUserName, getProfile]),
 
     onUpdate: useCallback((msg) => {
-      setMessages((prev) =>
-        prev.map((m) => m.id === msg.id ? { ...m, deleted_at: msg.deleted_at } : m)
-      )
+      setMessages((prev) => prev.map((m) => m.id === msg.id ? { ...m, deleted_at: msg.deleted_at } : m))
     }, []),
 
     onDelete: useCallback((id) => {
-      setMessages((prev) =>
-        prev.map((m) => m.id === id ? { ...m, deleted_at: new Date().toISOString() } : m)
-      )
+      setMessages((prev) => prev.map((m) => m.id === id ? { ...m, deleted_at: new Date().toISOString() } : m))
     }, []),
 
-    // ✓✓ в реальном времени — фильтруем только сообщения текущего чата
     onRead: useCallback(({ message_id, user_id }: { message_id: string; user_id: string }) => {
       if (user_id === currentUserId) return
       setMessages((prev) => {
         const target = prev.find((m) => m.id === message_id)
-        if (!target) return prev // не наш чат — игнорируем
-        if (target.reads.some((r) => r.user_id === user_id)) return prev
-        return prev.map((m) =>
-          m.id === message_id ? { ...m, reads: [...m.reads, { user_id }] } : m
-        )
+        if (!target || target.reads.some((r) => r.user_id === user_id)) return prev
+        return prev.map((m) => m.id === message_id ? { ...m, reads: [...m.reads, { user_id }] } : m)
       })
     }, [currentUserId]),
+
+    onReactionAdd: useCallback((reaction) => {
+      setMessages((prev) => prev.map((m) => {
+        if (m.id !== reaction.message_id) return m
+        if (m.reactions.some((r) => r.id === reaction.id)) return m
+        return { ...m, reactions: [...m.reactions, reaction] }
+      }))
+    }, []),
+
+    onReactionRemove: useCallback((reaction) => {
+      setMessages((prev) => prev.map((m) => {
+        if (m.id !== reaction.message_id) return m
+        return { ...m, reactions: m.reactions.filter((r) => !(r.emoji === reaction.emoji && r.user_id === reaction.user_id)) }
+      }))
+    }, []),
   })
 
   const { typingUsers, setTyping } = useTyping(groupId, currentUserId, currentUserName)
@@ -140,25 +137,19 @@ export function ChatWindow({
     }
   }, [groupId, isLoadingMore, hasMore, messages])
 
+  const handleDelete = useCallback((id: string) => {
+    setMessages((prev) => prev.map((m) => m.id === id ? { ...m, deleted_at: new Date().toISOString() } : m))
+  }, [])
+
   const handleSend = useCallback(async (text: string, replyToId?: string) => {
     const tempId = `temp-${Date.now()}`
     const optimisticMsg: MessageWithRelations = {
-      id: tempId,
-      group_id: groupId,
-      sender_id: currentUserId,
-      content: text,
-      reply_to: replyToId ?? null,
-      deleted_at: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      id: tempId, group_id: groupId, sender_id: currentUserId, content: text,
+      reply_to: replyToId ?? null, deleted_at: null,
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
       sender: { id: currentUserId, display_name: currentUserName, avatar_url: null },
-      reply: replyTo && replyToId ? {
-        id: replyToId,
-        content: replyTo.content,
-        sender: { display_name: replyTo.senderName },
-      } : null,
-      reactions: [],
-      reads: [],
+      reply: replyTo && replyToId ? { id: replyToId, content: replyTo.content, sender: { display_name: replyTo.senderName } } : null,
+      reactions: [], reads: [],
     }
     setMessages((prev) => [...prev, optimisticMsg])
     setReplyTo(null)
@@ -177,6 +168,7 @@ export function ChatWindow({
         hasMore={hasMore}
         isLoadingMore={isLoadingMore}
         onLoadMore={loadMore}
+        onDelete={handleDelete}
         onReply={(msg) => setReplyTo({
           id: msg.id,
           content: msg.content ?? '',
