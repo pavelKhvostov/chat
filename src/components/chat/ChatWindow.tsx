@@ -102,6 +102,19 @@ export function ChatWindow({
         prev.map((m) => m.id === id ? { ...m, deleted_at: new Date().toISOString() } : m)
       )
     }, []),
+
+    // ✓✓ в реальном времени — фильтруем только сообщения текущего чата
+    onRead: useCallback(({ message_id, user_id }: { message_id: string; user_id: string }) => {
+      if (user_id === currentUserId) return
+      setMessages((prev) => {
+        const target = prev.find((m) => m.id === message_id)
+        if (!target) return prev // не наш чат — игнорируем
+        if (target.reads.some((r) => r.user_id === user_id)) return prev
+        return prev.map((m) =>
+          m.id === message_id ? { ...m, reads: [...m.reads, { user_id }] } : m
+        )
+      })
+    }, [currentUserId]),
   })
 
   const { typingUsers, setTyping } = useTyping(groupId, currentUserId, currentUserName)

@@ -12,11 +12,10 @@ interface UseRealtimeOptions {
   onInsert: (msg: RealtimeMessage) => void
   onUpdate: (msg: RealtimeMessage) => void
   onDelete: (id: string) => void
-  onRead?: (read: RealtimeRead) => void
+  onRead: (read: RealtimeRead) => void
 }
 
 export function useRealtime({ groupId, onInsert, onUpdate, onDelete, onRead }: UseRealtimeOptions): void {
-  // Callback refs — стабильные ссылки без пересоздания канала
   const onInsertRef = useRef(onInsert)
   const onUpdateRef = useRef(onUpdate)
   const onDeleteRef = useRef(onDelete)
@@ -45,6 +44,11 @@ export function useRealtime({ groupId, onInsert, onUpdate, onDelete, onRead }: U
         'postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'messages', filter: `group_id=eq.${groupId}` },
         (payload) => onDeleteRef.current((payload.old as { id: string }).id)
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'message_reads' },
+        (payload) => onReadRef.current(payload.new as RealtimeRead)
       )
       .subscribe()
 

@@ -72,9 +72,8 @@ export function MessageBubble({ message, currentUserId, onReply }: MessageBubble
         >
           {/* Reply цитата */}
           {message.reply && !isDeleted && (
-            <div className="border-l-2 border-indigo-300 pl-2 mb-1.5 text-xs opacity-80">
-              <span className="font-medium text-indigo-200">{message.reply.sender?.display_name ?? 'Пользователь'}</span>
-              <p className="truncate text-gray-300">{message.reply.content}</p>
+            <div className="border-l-2 border-indigo-400/60 pl-2 mb-1.5 text-xs opacity-80">
+              <p className="truncate text-white/70">{message.reply.content}</p>
             </div>
           )}
 
