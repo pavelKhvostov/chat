@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Hash, Users } from 'lucide-react'
+import { fetchMessages } from '@/lib/actions/messages'
+import { ChatWindow } from '@/components/chat/ChatWindow'
 
 interface Props {
   params: Promise<{ groupId: string }>
@@ -24,6 +26,12 @@ export default async function GroupPage({ params }: Props) {
 
   if (!group) notFound()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  const initialMessages = user ? await fetchMessages(groupId) : []
+  const { data: profile } = user
+    ? await supabase.from('profiles').select('display_name').eq('id', user.id).single()
+    : { data: null }
+
   return (
     <div className="flex h-full flex-col">
       {/* Шапка чата — Telegram style */}
@@ -43,16 +51,15 @@ export default async function GroupPage({ params }: Props) {
         </div>
       </header>
 
-      {/* Область сообщений — Phase 4 */}
-      <div className="flex flex-1 items-center justify-center bg-[#0f0f1a]">
-        <div className="text-center">
-          <Hash size={36} className="mx-auto text-white/10 mb-3" strokeWidth={1} />
-          <p className="text-sm text-white/30 font-medium">{group.name}</p>
-          <p className="mt-1 text-xs text-white/20">
-            Сообщения появятся в следующей фазе разработки
-          </p>
-        </div>
-      </div>
+      {/* Область сообщений */}
+      {user ? (
+        <ChatWindow
+          groupId={groupId}
+          currentUserId={user.id}
+          currentUserName={profile?.display_name ?? 'Пользователь'}
+          initialMessages={initialMessages}
+        />
+      ) : null}
     </div>
   )
 }
