@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Hash, Users } from 'lucide-react'
 import { fetchMessages } from '@/lib/actions/messages'
@@ -13,7 +13,7 @@ export default async function GroupPage({ params }: Props) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  if (!user) redirect('/login')
 
   const [{ data: group }, { count: memberCount }, initialMessages, { data: members }] = await Promise.all([
     supabase.from('groups').select('name, description, parent_id').eq('id', groupId).single(),

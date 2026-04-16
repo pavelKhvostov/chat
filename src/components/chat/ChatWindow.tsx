@@ -40,13 +40,11 @@ export function ChatWindow({
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [replyTo, setReplyTo] = useState<ReplyTarget | null>(null)
 
-  // Кеш профилей — заполняется с сервера, без клиентских запросов
+  // Кеш профилей — заполняется с сервера
   const profileCache = useRef<Map<string, Profile>>(new Map())
 
   useEffect(() => {
-    // Профили участников группы (с сервера)
     memberProfiles.forEach((p) => profileCache.current.set(p.id, p))
-    // Профили из сообщений
     initialMessages.forEach((m) => {
       if (m.sender) profileCache.current.set(m.sender_id, m.sender)
     })
@@ -60,7 +58,6 @@ export function ChatWindow({
     }
   }, [])
 
-  // Realtime подписки
   useRealtime({
     groupId,
     onInsert: useCallback((msg) => {
@@ -69,7 +66,6 @@ export function ChatWindow({
         : getProfile(msg.sender_id)
 
       setMessages((prev) => {
-        // Находим reply-цитату в существующих сообщениях
         const replyMsg = msg.reply_to ? prev.find((m) => m.id === msg.reply_to) : null
         const reply = replyMsg ? {
           id: replyMsg.id,
@@ -78,8 +74,9 @@ export function ChatWindow({
         } : null
 
         if (msg.sender_id === currentUserId) {
+          // Заменяем temp-сообщение: ищем по correlationId в reply_to или по content
           const withoutTemp = prev.filter(
-            (m) => !(m.id.startsWith('temp-') && m.content === msg.content)
+            (m) => !(m.id.startsWith('temp-') && m.content === msg.content && m.sender_id === currentUserId)
           )
           if (withoutTemp.some((m) => m.id === msg.id)) return withoutTemp
           return [...withoutTemp, { ...msg, sender, reply, reactions: [], reads: [] } as MessageWithRelations]
@@ -105,23 +102,10 @@ export function ChatWindow({
         prev.map((m) => m.id === id ? { ...m, deleted_at: new Date().toISOString() } : m)
       )
     }, []),
-
-    // ✓✓ обновляется в реальном времени когда другой пользователь прочитал
-    onRead: useCallback(({ message_id, user_id }: { message_id: string; user_id: string }) => {
-      if (user_id === currentUserId) return
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === message_id && !m.reads.some((r) => r.user_id === user_id)
-            ? { ...m, reads: [...m.reads, { user_id }] }
-            : m
-        )
-      )
-    }, [currentUserId]),
   })
 
   const { typingUsers, setTyping } = useTyping(groupId, currentUserId, currentUserName)
 
-  // Отметить как прочитанные при монтировании
   useEffect(() => {
     const ids = messages
       .filter((m) => m.sender_id !== currentUserId && !m.reads.some(r => r.user_id === currentUserId))

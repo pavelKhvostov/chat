@@ -16,53 +16,40 @@ interface UseRealtimeOptions {
 }
 
 export function useRealtime({ groupId, onInsert, onUpdate, onDelete, onRead }: UseRealtimeOptions): void {
-  const supabase = createClient()
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  // Callback refs — стабильные ссылки без пересоздания канала
+  const onInsertRef = useRef(onInsert)
+  const onUpdateRef = useRef(onUpdate)
+  const onDeleteRef = useRef(onDelete)
+  const onReadRef = useRef(onRead)
+  onInsertRef.current = onInsert
+  onUpdateRef.current = onUpdate
+  onDeleteRef.current = onDelete
+  onReadRef.current = onRead
 
   useEffect(() => {
-    // Убираем предыдущий канал если есть
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current)
-    }
+    const supabase = createClient()
 
     const channel = supabase
-      .channel(`group:${groupId}:${Date.now()}`)
+      .channel(`group:${groupId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `group_id=eq.${groupId}` },
-        (payload) => onInsert(payload.new as RealtimeMessage)
+        (payload) => onInsertRef.current(payload.new as RealtimeMessage)
       )
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'messages', filter: `group_id=eq.${groupId}` },
-        (payload) => onUpdate(payload.new as RealtimeMessage)
+        (payload) => onUpdateRef.current(payload.new as RealtimeMessage)
       )
       .on(
         'postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'messages', filter: `group_id=eq.${groupId}` },
-        (payload) => onDelete((payload.old as { id: string }).id)
+        (payload) => onDeleteRef.current((payload.old as { id: string }).id)
       )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'message_reads' },
-        (payload) => {
-          if (onRead) onRead(payload.new as RealtimeRead)
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') {
-          // Переподключаемся при ошибке
-          setTimeout(() => {
-            supabase.removeChannel(channel)
-          }, 2000)
-        }
-      })
-
-    channelRef.current = channel
+      .subscribe()
 
     return () => {
       supabase.removeChannel(channel)
-      channelRef.current = null
     }
-  }, [groupId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [groupId])
 }
