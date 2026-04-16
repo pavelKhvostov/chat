@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { Check, CheckCheck, Trash2, Reply } from 'lucide-react'
 import { type MessageWithRelations, deleteMessage } from '@/lib/actions/messages'
 import { toggleReaction } from '@/lib/actions/reactions'
@@ -17,7 +16,6 @@ const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '👏']
 
 export function MessageBubble({ message, currentUserId, onReply }: MessageBubbleProps) {
   const isOwn = message.sender_id === currentUserId
-  const [isHovered, setIsHovered] = useState(false)
   const isDeleted = message.deleted_at !== null
 
   const groupedReactions: ReactionGroup[] = message.reactions.reduce<ReactionGroup[]>((acc, r) => {
@@ -44,19 +42,19 @@ export function MessageBubble({ message, currentUserId, onReply }: MessageBubble
 
       {/* Строка с action-кнопками и пузырём */}
       <div className={`flex items-center gap-1 mb-1 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-        {/* Кнопки Reply и Delete при hover */}
-        {isHovered && !isDeleted && (
+        {/* Кнопки Reply и Delete — видны только при group-hover */}
+        {!isDeleted && (
           <>
             <button
               onClick={() => onReply(message)}
-              className="p-1 rounded text-white/30 hover:text-white/70 hover:bg-white/10 transition-colors"
+              className="p-1 rounded text-white/30 hover:text-white/70 hover:bg-white/10 transition-colors opacity-0 group-hover:opacity-100"
             >
               <Reply size={14} strokeWidth={1.5} />
             </button>
             {isOwn && (
               <button
                 onClick={() => deleteMessage(message.id)}
-                className="p-1 rounded text-white/30 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                className="p-1 rounded text-white/30 hover:text-red-400 hover:bg-red-400/10 transition-colors opacity-0 group-hover:opacity-100"
               >
                 <Trash2 size={14} strokeWidth={1.5} />
               </button>
@@ -66,8 +64,6 @@ export function MessageBubble({ message, currentUserId, onReply }: MessageBubble
 
         {/* Пузырь сообщения */}
         <div
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
           className={`max-w-[70%] px-3 py-2 rounded-2xl text-sm ${
             isOwn
               ? 'bg-indigo-600 text-white rounded-br-sm'
@@ -77,7 +73,7 @@ export function MessageBubble({ message, currentUserId, onReply }: MessageBubble
           {/* Reply цитата */}
           {message.reply && !isDeleted && (
             <div className="border-l-2 border-indigo-300 pl-2 mb-1.5 text-xs opacity-80">
-              <span className="font-medium text-indigo-200">{message.reply.sender.display_name}</span>
+              <span className="font-medium text-indigo-200">{message.reply.sender?.display_name ?? 'Пользователь'}</span>
               <p className="truncate text-gray-300">{message.reply.content}</p>
             </div>
           )}
@@ -121,9 +117,9 @@ export function MessageBubble({ message, currentUserId, onReply }: MessageBubble
         </div>
       )}
 
-      {/* Quick reaction picker при hover */}
-      {isHovered && !isDeleted && (
-        <div className={`flex gap-0.5 mb-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+      {/* Quick reaction picker — виден только при group-hover */}
+      {!isDeleted && (
+        <div className={`flex gap-0.5 mb-1 opacity-0 group-hover:opacity-100 transition-opacity ${isOwn ? 'justify-end' : 'justify-start'}`}>
           {QUICK_REACTIONS.map((emoji) => (
             <button
               key={emoji}
