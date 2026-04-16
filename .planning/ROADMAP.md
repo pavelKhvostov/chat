@@ -13,7 +13,7 @@
 - [ ] **Phase 1: Database & Schema** - Полная схема БД с RLS, Storage bucket, миграции применены к Supabase Cloud
 - [ ] **Phase 2: Authentication** - Вход по email+password, сессия, middleware, защита роутов
 - [ ] **Phase 3: Layout & Sidebar** - Root layout, Sidebar с иерархией групп и личными папками
-- [ ] **Phase 4: Chat & Realtime** - Текстовые сообщения в реальном времени, статусы прочтения, реакции
+- [x] **Phase 4: Chat & Realtime** - Текстовые сообщения в реальном времени, статусы прочтения, реакции (completed 2026-04-16)
 - [ ] **Phase 5: Attachments** - Фото, файлы, голосовые сообщения, видео-кружки
 - [ ] **Phase 6: DM & Presence** - Личная переписка, индикатор "печатает..."
 - [ ] **Phase 7: Search & Pinned** - Поиск по чатам и сообщениям, закреп сообщений
