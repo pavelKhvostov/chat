@@ -91,8 +91,8 @@ export function MessageBubble({ message, currentUserId, onReply }: MessageBubble
             </span>
             {isOwn && !isDeleted && (
               isRead
-                ? <CheckCheck size={14} className="text-indigo-300" />
-                : <Check size={14} className="text-gray-400" />
+                ? <CheckCheck size={12} strokeWidth={2} className="text-indigo-300 flex-shrink-0" />
+                : <Check size={12} strokeWidth={2} className="text-white/40 flex-shrink-0" />
             )}
           </div>
         </div>

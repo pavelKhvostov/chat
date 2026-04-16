@@ -7,7 +7,6 @@ import {
   sendMessage,
   markMessagesAsRead,
 } from '@/lib/actions/messages'
-import { createClient } from '@/lib/supabase/client'
 import { useRealtime } from '@/hooks/useRealtime'
 import { useTyping } from '@/hooks/useTyping'
 import { MessageList } from './MessageList'
@@ -19,11 +18,14 @@ interface ReplyTarget {
   senderName: string
 }
 
+type Profile = { id: string; display_name: string; avatar_url: string | null }
+
 interface ChatWindowProps {
   groupId: string
   currentUserId: string
   currentUserName: string
   initialMessages: MessageWithRelations[]
+  memberProfiles: Profile[]
 }
 
 export function ChatWindow({
@@ -31,62 +33,55 @@ export function ChatWindow({
   currentUserId,
   currentUserName,
   initialMessages,
+  memberProfiles,
 }: ChatWindowProps) {
   const [messages, setMessages] = useState<MessageWithRelations[]>(initialMessages)
   const [hasMore, setHasMore] = useState(initialMessages.length === 50)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [replyTo, setReplyTo] = useState<ReplyTarget | null>(null)
 
-  // Кеш профилей чтобы Realtime-сообщения имели имя отправителя
-  const profileCache = useRef<Map<string, { id: string; display_name: string; avatar_url: string | null }>>(new Map())
+  // Кеш профилей — заполняется с сервера, без клиентских запросов
+  const profileCache = useRef<Map<string, Profile>>(new Map())
 
-  // Предзаполняем кеш из initialMessages
   useEffect(() => {
+    // Профили участников группы (с сервера)
+    memberProfiles.forEach((p) => profileCache.current.set(p.id, p))
+    // Профили из сообщений
     initialMessages.forEach((m) => {
       if (m.sender) profileCache.current.set(m.sender_id, m.sender)
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Получить профиль из кеша или запросить из Supabase
-  const getProfile = useCallback(async (userId: string) => {
-    if (profileCache.current.has(userId)) return profileCache.current.get(userId)!
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, display_name, avatar_url')
-      .eq('id', userId)
-      .single()
-    if (data) {
-      profileCache.current.set(userId, data)
-      return data
+  const getProfile = useCallback((userId: string): Profile => {
+    return profileCache.current.get(userId) ?? {
+      id: userId,
+      display_name: 'Участник',
+      avatar_url: null,
     }
-    return { id: userId, display_name: 'Пользователь', avatar_url: null }
   }, [])
 
   // Realtime подписки
   useRealtime({
     groupId,
-    onInsert: useCallback(async (msg) => {
-      // Для своих сообщений — убираем temp-оптимистичное и добавляем реальное
+    onInsert: useCallback((msg) => {
+      const sender = msg.sender_id === currentUserId
+        ? { id: currentUserId, display_name: currentUserName, avatar_url: null }
+        : getProfile(msg.sender_id)
+
       if (msg.sender_id === currentUserId) {
-        const sender = { id: currentUserId, display_name: currentUserName, avatar_url: null }
+        // Заменяем temp-сообщение реальным
         setMessages((prev) => {
-          // Удаляем temp-сообщение с тем же content
           const withoutTemp = prev.filter(
             (m) => !(m.id.startsWith('temp-') && m.content === msg.content)
           )
-          // Если уже есть реальное — не дублируем
           if (withoutTemp.some((m) => m.id === msg.id)) return withoutTemp
           return [...withoutTemp, { ...msg, sender, reply: null, reactions: [], reads: [] } as MessageWithRelations]
         })
       } else {
-        // Для чужих — получаем профиль из кеша/Supabase
-        const sender = await getProfile(msg.sender_id)
         setMessages((prev) => {
           if (prev.some((m) => m.id === msg.id)) return prev
           return [...prev, { ...msg, sender, reply: null, reactions: [], reads: [] } as MessageWithRelations]
         })
-        // Отмечаем как прочитанное
         markMessagesAsRead([msg.id])
       }
     }, [currentUserId, currentUserName, getProfile]),
@@ -102,9 +97,20 @@ export function ChatWindow({
         prev.map((m) => m.id === id ? { ...m, deleted_at: new Date().toISOString() } : m)
       )
     }, []),
+
+    // ✓✓ обновляется в реальном времени когда другой пользователь прочитал
+    onRead: useCallback(({ message_id, user_id }: { message_id: string; user_id: string }) => {
+      if (user_id === currentUserId) return
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === message_id && !m.reads.some((r) => r.user_id === user_id)
+            ? { ...m, reads: [...m.reads, { user_id }] }
+            : m
+        )
+      )
+    }, [currentUserId]),
   })
 
-  // Typing indicator
   const { typingUsers, setTyping } = useTyping(groupId, currentUserId, currentUserName)
 
   // Отметить как прочитанные при монтировании
@@ -115,7 +121,6 @@ export function ChatWindow({
     if (ids.length > 0) markMessagesAsRead(ids)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Загрузка старых сообщений (пагинация)
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore) return
     setIsLoadingMore(true)
@@ -130,10 +135,8 @@ export function ChatWindow({
     }
   }, [groupId, isLoadingMore, hasMore, messages])
 
-  // Отправка с оптимистичным UI
   const handleSend = useCallback(async (text: string, replyToId?: string) => {
     const tempId = `temp-${Date.now()}`
-
     const optimisticMsg: MessageWithRelations = {
       id: tempId,
       group_id: groupId,
@@ -152,15 +155,11 @@ export function ChatWindow({
       reactions: [],
       reads: [],
     }
-
     setMessages((prev) => [...prev, optimisticMsg])
     setReplyTo(null)
-
     try {
       await sendMessage(groupId, text, replyToId)
-      // Realtime INSERT заменит temp-сообщение
     } catch {
-      // Откатываем при ошибке
       setMessages((prev) => prev.filter((m) => m.id !== tempId))
     }
   }, [groupId, currentUserId, currentUserName, replyTo])
@@ -175,12 +174,11 @@ export function ChatWindow({
         onLoadMore={loadMore}
         onReply={(msg) => setReplyTo({
           id: msg.id,
-          content: msg.content,
-          senderName: msg.sender.display_name,
+          content: msg.content ?? '',
+          senderName: msg.sender?.display_name ?? '',
         })}
       />
 
-      {/* Typing indicator */}
       {typingUsers.length > 0 && (
         <div className="px-4 py-1 flex items-center gap-1">
           <span className="text-xs text-white/40 italic">
@@ -190,11 +188,8 @@ export function ChatWindow({
           </span>
           <span className="inline-flex gap-0.5 ml-0.5">
             {[0, 1, 2].map((i) => (
-              <span
-                key={i}
-                className="w-1 h-1 bg-white/40 rounded-full animate-bounce"
-                style={{ animationDelay: `${i * 0.15}s` }}
-              />
+              <span key={i} className="w-1 h-1 bg-white/40 rounded-full animate-bounce"
+                style={{ animationDelay: `${i * 0.15}s` }} />
             ))}
           </span>
         </div>
