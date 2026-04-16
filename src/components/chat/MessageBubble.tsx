@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Check, CheckCheck, Trash2, Reply } from 'lucide-react'
 import { type MessageWithRelations, deleteMessage } from '@/lib/actions/messages'
 import { toggleReaction } from '@/lib/actions/reactions'
@@ -20,8 +20,17 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete }: Mes
   const isOwn = message.sender_id === currentUserId
   const isDeleted = message.deleted_at !== null
 
-  // Оптимистичные реакции — локальный оверрайд до прихода Realtime
+  // Оптимистичные реакции — сбрасываем когда Realtime обновил message.reactions
   const [optimisticReactions, setOptimisticReactions] = useState<typeof message.reactions | null>(null)
+  const prevReactionsRef = useRef(message.reactions)
+
+  useEffect(() => {
+    if (message.reactions !== prevReactionsRef.current) {
+      prevReactionsRef.current = message.reactions
+      setOptimisticReactions(null)
+    }
+  }, [message.reactions])
+
   const reactions = optimisticReactions ?? message.reactions
 
   const groupedReactions: ReactionGroup[] = reactions.reduce<ReactionGroup[]>((acc, r) => {
@@ -37,16 +46,21 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete }: Mes
 
   const isRead = message.reads.some((r) => r.user_id !== currentUserId)
 
-  const handleReaction = async (emoji: string) => {
+  const handleReaction = (emoji: string) => {
     const alreadyReacted = reactions.some(r => r.emoji === emoji && r.user_id === currentUserId)
     if (alreadyReacted) {
       setOptimisticReactions(reactions.filter(r => !(r.emoji === emoji && r.user_id === currentUserId)))
     } else {
-      const fakeReaction = { id: `opt-${Date.now()}`, message_id: message.id, emoji, user_id: currentUserId, created_at: new Date().toISOString() }
+      const fakeReaction = {
+        id: `opt-${Date.now()}`,
+        message_id: message.id,
+        emoji,
+        user_id: currentUserId,
+        created_at: new Date().toISOString(),
+      }
       setOptimisticReactions([...reactions, fakeReaction])
     }
-    await toggleReaction(message.id, emoji)
-    setOptimisticReactions(null) // передаём управление Realtime
+    toggleReaction(message.id, emoji) // fire-and-forget, Realtime обновит state
   }
 
   const handleDelete = () => {
@@ -63,10 +77,10 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete }: Mes
         </span>
       )}
 
-      {/* Ряд: кнопки + пузырь */}
-      <div className={`flex items-center gap-1 mb-0.5 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-        {/* Пузырь */}
-        <div className={`max-w-[72%] px-3 py-2 rounded-2xl text-sm ${
+      {/* Ряд: пузырь + кнопки */}
+      <div className={`flex items-center gap-1 mb-0.5 w-full ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+        {/* Пузырь — min-w-0 + overflow-hidden чтобы длинный текст не выходил за max-w */}
+        <div className={`min-w-0 max-w-[72%] overflow-hidden px-3 py-2 rounded-2xl text-sm ${
           isOwn ? 'bg-indigo-600 text-white rounded-br-sm' : 'bg-[#1e2c3a] text-gray-100 rounded-bl-sm'
         }`}>
           {message.reply && !isDeleted && (
@@ -76,7 +90,7 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete }: Mes
           )}
           {isDeleted
             ? <span className="italic text-white/30 text-xs">Сообщение удалено</span>
-            : <span className="leading-relaxed whitespace-pre-wrap break-words">{message.content}</span>
+            : <span className="leading-relaxed break-all whitespace-pre-wrap">{message.content}</span>
           }
           <div className="flex items-center justify-end gap-1 mt-0.5">
             <span className="font-mono text-[10px] opacity-50">
@@ -90,7 +104,7 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete }: Mes
           </div>
         </div>
 
-        {/* Кнопки — в ряду, без layout shift через opacity */}
+        {/* Кнопки */}
         {!isDeleted && (
           <div className="flex gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
