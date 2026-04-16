@@ -68,20 +68,28 @@ export function ChatWindow({
         ? { id: currentUserId, display_name: currentUserName, avatar_url: null }
         : getProfile(msg.sender_id)
 
-      if (msg.sender_id === currentUserId) {
-        // Заменяем temp-сообщение реальным
-        setMessages((prev) => {
+      setMessages((prev) => {
+        // Находим reply-цитату в существующих сообщениях
+        const replyMsg = msg.reply_to ? prev.find((m) => m.id === msg.reply_to) : null
+        const reply = replyMsg ? {
+          id: replyMsg.id,
+          content: replyMsg.content,
+          sender: { display_name: replyMsg.sender?.display_name ?? 'Участник' },
+        } : null
+
+        if (msg.sender_id === currentUserId) {
           const withoutTemp = prev.filter(
             (m) => !(m.id.startsWith('temp-') && m.content === msg.content)
           )
           if (withoutTemp.some((m) => m.id === msg.id)) return withoutTemp
-          return [...withoutTemp, { ...msg, sender, reply: null, reactions: [], reads: [] } as MessageWithRelations]
-        })
-      } else {
-        setMessages((prev) => {
+          return [...withoutTemp, { ...msg, sender, reply, reactions: [], reads: [] } as MessageWithRelations]
+        } else {
           if (prev.some((m) => m.id === msg.id)) return prev
-          return [...prev, { ...msg, sender, reply: null, reactions: [], reads: [] } as MessageWithRelations]
-        })
+          return [...prev, { ...msg, sender, reply, reactions: [], reads: [] } as MessageWithRelations]
+        }
+      })
+
+      if (msg.sender_id !== currentUserId) {
         markMessagesAsRead([msg.id])
       }
     }, [currentUserId, currentUserName, getProfile]),
