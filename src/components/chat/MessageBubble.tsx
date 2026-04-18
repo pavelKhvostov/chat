@@ -1,6 +1,7 @@
 'use client'
 
-import { Check, CheckCheck, Trash2, Reply } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Check, CheckCheck, Trash2, Reply, SmilePlus } from 'lucide-react'
 import { type MessageWithRelations, deleteMessage } from '@/lib/actions/messages'
 import { AttachmentRenderer } from './attachments/AttachmentRenderer'
 
@@ -20,6 +21,19 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete, onRea
   const isOwn = message.sender_id === currentUserId
   const isDeleted = message.deleted_at !== null
 
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const lastTapRef = useRef<number>(0)
+  const pickerWrapRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!pickerOpen) return
+    const onDoc = (e: MouseEvent) => {
+      if (!pickerWrapRef.current?.contains(e.target as Node)) setPickerOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [pickerOpen])
+
   const groupedReactions: ReactionGroup[] = message.reactions.reduce<ReactionGroup[]>((acc, r) => {
     const existing = acc.find(g => g.emoji === r.emoji)
     if (existing) {
@@ -38,6 +52,28 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete, onRea
     deleteMessage(message.id)
   }
 
+  const handleBubbleDoubleClick = () => {
+    if (isDeleted || message.id.startsWith('temp-')) return
+    onReaction(message.id, '❤️')
+  }
+
+  // Touch: double-tap (<300ms) → ❤️
+  const handleTouchEnd = () => {
+    if (isDeleted || message.id.startsWith('temp-')) return
+    const now = Date.now()
+    if (now - lastTapRef.current < 300) {
+      onReaction(message.id, '❤️')
+      lastTapRef.current = 0
+    } else {
+      lastTapRef.current = now
+    }
+  }
+
+  const pickReaction = (emoji: string) => {
+    onReaction(message.id, emoji)
+    setPickerOpen(false)
+  }
+
   return (
     <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} group mb-2`}>
       {/* Имя отправителя */}
@@ -47,13 +83,17 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete, onRea
         </span>
       )}
 
-      {/* Ряд: пузырь + кнопки */}
+      {/* Ряд: пузырь + действия (fade-in без layout-shift) */}
       <div className={`flex items-center gap-1 w-full ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-        <div className={`min-w-0 max-w-[75%] overflow-hidden px-[14px] py-[10px] rounded-md text-[15px] ${
-          isOwn
-            ? 'bg-coral-500 text-white'
-            : 'bg-ink-100 text-ink-900'
-        }`}>
+        <div
+          onDoubleClick={handleBubbleDoubleClick}
+          onTouchEnd={handleTouchEnd}
+          className={`min-w-0 max-w-[75%] overflow-hidden px-[14px] py-[10px] rounded-md text-[15px] select-text ${
+            isOwn
+              ? 'bg-coral-500 text-white'
+              : 'bg-ink-100 text-ink-900'
+          }`}
+        >
           {message.reply && !isDeleted && (
             <div className={`border-l-2 pl-2 mb-1.5 text-[13px] ${
               isOwn ? 'border-white/50 text-white/85' : 'border-coral-500/60 text-ink-500'
@@ -90,11 +130,22 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete, onRea
           </div>
         </div>
 
-        {/* Кнопки действий */}
+        {/* Кнопки действий: fade-in без layout shift */}
         {!isDeleted && (
-          <div className="hidden group-hover:flex gap-0.5 shrink-0">
+          <div
+            ref={pickerWrapRef}
+            className="relative flex gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150"
+          >
+            <button
+              onClick={() => setPickerOpen((v) => !v)}
+              aria-label="Добавить реакцию"
+              className="p-1.5 rounded-full bg-surface shadow-sh-1 text-ink-500 hover:text-coral-500 transition-colors"
+            >
+              <SmilePlus size={14} strokeWidth={1.75} />
+            </button>
             <button
               onClick={() => onReply(message)}
+              aria-label="Ответить"
               className="p-1.5 rounded-full bg-surface shadow-sh-1 text-ink-500 hover:text-coral-500 transition-colors"
             >
               <Reply size={14} strokeWidth={1.75} />
@@ -102,10 +153,30 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete, onRea
             {isOwn && (
               <button
                 onClick={handleDelete}
+                aria-label="Удалить"
                 className="p-1.5 rounded-full bg-surface shadow-sh-1 text-ink-500 hover:text-rose-500 transition-colors"
               >
                 <Trash2 size={14} strokeWidth={1.75} />
               </button>
+            )}
+
+            {/* Reaction picker popover */}
+            {pickerOpen && (
+              <div
+                className={`absolute z-20 top-full mt-1 flex gap-1 p-1.5 rounded-pill bg-surface shadow-sh-2 border border-stroke ${
+                  isOwn ? 'right-0' : 'left-0'
+                }`}
+              >
+                {QUICK_REACTIONS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => pickReaction(emoji)}
+                    className="w-8 h-8 rounded-full hover:bg-ink-50 flex items-center justify-center text-[18px] transition-colors"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         )}
@@ -125,21 +196,6 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete, onRea
               }`}
             >
               {emoji} <span className="font-semibold">{count}</span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Quick picker */}
-      {!isDeleted && (
-        <div className={`hidden group-hover:flex gap-0.5 mt-1 ${isOwn ? 'justify-end' : 'justify-start ml-4'}`}>
-          {QUICK_REACTIONS.map((emoji) => (
-            <button
-              key={emoji}
-              onClick={() => onReaction(message.id, emoji)}
-              className="w-7 h-7 rounded-full bg-surface shadow-sh-1 hover:bg-coral-100 flex items-center justify-center text-sm transition-colors"
-            >
-              {emoji}
             </button>
           ))}
         </div>

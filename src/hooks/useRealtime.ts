@@ -6,6 +6,7 @@ import { type Tables } from '@/lib/types/database.types'
 
 type RealtimeMessage = Tables<'messages'>
 type RealtimeReaction = Tables<'message_reactions'>
+type RealtimeAttachment = Tables<'message_attachments'>
 
 interface UseRealtimeOptions {
   groupId: string
@@ -14,6 +15,7 @@ interface UseRealtimeOptions {
   onDelete: (id: string) => void
   onReactionAdd: (reaction: RealtimeReaction) => void
   onReactionRemove: (reaction: Pick<RealtimeReaction, 'id' | 'message_id' | 'emoji' | 'user_id'>) => void
+  onAttachmentInsert?: (attachment: RealtimeAttachment) => void
 }
 
 export function useRealtime(options: UseRealtimeOptions): {
@@ -24,7 +26,7 @@ export function useRealtime(options: UseRealtimeOptions): {
 
   const reactionChannelRef = useRef<ReturnType<ReturnType<typeof createClient>['channel']> | null>(null)
 
-  // Канал 1: postgres_changes для сообщений (message_reads не подписываемся — нет group_id для фильтра, RLS обходится)
+  // Канал 1: postgres_changes для сообщений и вложений
   useEffect(() => {
     const supabase = createClient()
     const { groupId } = refs.current
@@ -40,13 +42,17 @@ export function useRealtime(options: UseRealtimeOptions): {
       .on('postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'messages', filter: `group_id=eq.${groupId}` },
         (p) => refs.current.onDelete((p.old as { id: string }).id))
+      // message_attachments: без group_id фильтра (таблица не имеет его), ChatWindow проверит что message_id принадлежит текущей группе
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'message_attachments' },
+        (p) => refs.current.onAttachmentInsert?.(p.new as RealtimeAttachment))
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options.groupId])
 
-  // Канал 2: broadcast для реакций (отдельный канал, не смешиваем с postgres_changes)
+  // Канал 2: broadcast для реакций
   useEffect(() => {
     const supabase = createClient()
     const { groupId } = refs.current

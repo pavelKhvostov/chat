@@ -122,6 +122,19 @@ export function ChatWindow({
         return { ...m, reactions: m.reactions.filter((r) => !(r.emoji === reaction.emoji && r.user_id === reaction.user_id)) }
       }))
     }, []),
+
+    onAttachmentInsert: useCallback((att: import('@/lib/types/database.types').Tables<'message_attachments'>) => {
+      setMessages((prev) => prev.map((m) => {
+        if (m.id !== att.message_id) return m
+        // дедуп: не добавляем если такая запись уже есть
+        if (m.attachments.some((a) => a.id === att.id)) return m
+        const picked = {
+          id: att.id, path: att.path, type: att.type,
+          file_name: att.file_name, file_size: att.file_size, metadata: att.metadata,
+        }
+        return { ...m, attachments: [...m.attachments, picked] }
+      }))
+    }, []),
   })
 
   const { typingUsers, setTyping } = useTyping(groupId, currentUserId, currentUserName)

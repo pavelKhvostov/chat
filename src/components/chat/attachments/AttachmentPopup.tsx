@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Image as ImageIcon, Paperclip, Mic, Video } from 'lucide-react'
+import { Image as ImageIcon, Paperclip } from 'lucide-react'
 
 export type AttachmentPickType = 'image' | 'file' | 'voice' | 'video_circle'
 
@@ -20,8 +20,6 @@ interface MenuItem {
 const ITEMS: MenuItem[] = [
   { type: 'image', label: 'Фото', icon: <ImageIcon size={18} strokeWidth={1.75} /> },
   { type: 'file', label: 'Файл', icon: <Paperclip size={18} strokeWidth={1.75} /> },
-  { type: 'voice', label: 'Голос', icon: <Mic size={18} strokeWidth={1.75} /> },
-  { type: 'video_circle', label: 'Видео-кружок', icon: <Video size={18} strokeWidth={1.75} /> },
 ]
 
 export function AttachmentPopup({ open, onClose, onPick }: AttachmentPopupProps) {
