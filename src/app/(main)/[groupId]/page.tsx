@@ -15,14 +15,19 @@ export default async function GroupPage({ params }: Props) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: group }, { count: memberCount }, initialMessages, { data: members }] = await Promise.all([
-    supabase.from('groups').select('name, description, parent_id').eq('id', groupId).single(),
+  const { data: group } = await supabase
+    .from('groups')
+    .select('name, description, parent_id')
+    .eq('id', groupId)
+    .single()
+
+  if (!group) notFound()
+
+  const [{ count: memberCount }, initialMessages, { data: members }] = await Promise.all([
     supabase.from('group_members').select('*', { count: 'exact', head: true }).eq('group_id', groupId),
     fetchMessages(groupId),
     supabase.from('group_members').select('user_id').eq('group_id', groupId),
   ])
-
-  if (!group) notFound()
 
   // Загружаем профили всех участников на сервере (где сессия точно валидна)
   const memberIds = (members ?? []).map((m) => m.user_id)
