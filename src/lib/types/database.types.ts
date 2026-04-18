@@ -69,6 +69,7 @@ export type Database = {
           file_size: number
           id: string
           message_id: string
+          metadata: Json | null
           path: string
           type: string
         }
@@ -78,6 +79,7 @@ export type Database = {
           file_size: number
           id?: string
           message_id: string
+          metadata?: Json | null
           path: string
           type: string
         }
@@ -87,6 +89,7 @@ export type Database = {
           file_size?: number
           id?: string
           message_id?: string
+          metadata?: Json | null
           path?: string
           type?: string
         }
@@ -344,6 +347,7 @@ export type Database = {
           file_size: number
           id: string
           message_id: string
+          metadata: Json | null
           path: string
           type: string
         }
@@ -353,6 +357,7 @@ export type Database = {
           file_size: number
           id?: string
           message_id: string
+          metadata?: Json | null
           path: string
           type: string
         }
@@ -362,6 +367,7 @@ export type Database = {
           file_size?: number
           id?: string
           message_id?: string
+          metadata?: Json | null
           path?: string
           type?: string
         }
