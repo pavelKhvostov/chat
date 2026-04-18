@@ -2,6 +2,7 @@
 
 import { Check, CheckCheck, Trash2, Reply } from 'lucide-react'
 import { type MessageWithRelations, deleteMessage } from '@/lib/actions/messages'
+import { AttachmentRenderer } from './attachments/AttachmentRenderer'
 
 interface MessageBubbleProps {
   message: MessageWithRelations
@@ -60,11 +61,20 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete, onRea
               <p className="truncate">{message.reply.content}</p>
             </div>
           )}
+          {!isDeleted && message.attachments && message.attachments.length > 0 && (
+            <div className={`flex flex-col gap-2 ${message.content ? 'mb-2' : ''}`}>
+              {message.attachments.map((att) => (
+                <AttachmentRenderer key={att.id} attachment={att} isOwn={isOwn} />
+              ))}
+            </div>
+          )}
           {isDeleted
             ? <span className={`italic text-xs ${isOwn ? 'text-white/60' : 'text-brand-text-subtle'}`}>
                 Сообщение удалено
               </span>
-            : <span className="leading-relaxed break-all whitespace-pre-wrap">{message.content}</span>
+            : message.content
+              ? <span className="leading-relaxed break-all whitespace-pre-wrap">{message.content}</span>
+              : null
           }
           <div className={`flex items-center justify-end gap-1 mt-1 ${
             isOwn ? 'text-white/75' : 'text-brand-text-subtle'
