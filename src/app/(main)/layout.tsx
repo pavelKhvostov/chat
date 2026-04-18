@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getUser } from '@/lib/actions/auth'
 import { Sidebar } from '@/components/sidebar/Sidebar'
+import { ShellClient } from '@/components/layout/ShellClient'
 
 export default async function MainLayout({
   children,
@@ -11,11 +12,8 @@ export default async function MainLayout({
   if (!user) redirect('/login')
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0f0f1a]">
-      <Sidebar />
-      <main className="flex flex-1 flex-col overflow-hidden min-w-0">
-        {children}
-      </main>
-    </div>
+    <ShellClient sidebar={<Sidebar />}>
+      {children}
+    </ShellClient>
   )
 }

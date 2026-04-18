@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { Menu } from 'lucide-react'
 import {
   type MessageWithRelations,
   fetchMessages,
@@ -10,6 +11,7 @@ import {
 import { toggleReaction } from '@/lib/actions/reactions'
 import { useRealtime } from '@/hooks/useRealtime'
 import { useTyping } from '@/hooks/useTyping'
+import { useSidebarDrawer } from '@/components/layout/ShellClient'
 import { MessageList } from './MessageList'
 import { MessageInput } from './MessageInput'
 
@@ -124,6 +126,8 @@ export function ChatWindow({
     if (ids.length > 0) markMessagesAsRead(ids)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const { toggle: toggleSidebar } = useSidebarDrawer()
+
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore) return
     setIsLoadingMore(true)
@@ -203,6 +207,14 @@ export function ChatWindow({
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden bg-brand-bg">
+      <button
+        type="button"
+        onClick={toggleSidebar}
+        aria-label="Открыть меню"
+        className="md:hidden flex items-center justify-center min-h-[44px] min-w-[44px] mx-2 mt-2 self-start rounded-xl text-brand-text-muted hover:text-brand-primary hover:bg-brand-primary-soft transition-colors"
+      >
+        <Menu size={22} strokeWidth={1.75} />
+      </button>
       <MessageList
         messages={messages}
         currentUserId={currentUserId}
