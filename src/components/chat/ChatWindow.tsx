@@ -42,6 +42,13 @@ export function ChatWindow({
   const [hasMore, setHasMore] = useState(initialMessages.length === 50)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [replyTo, setReplyTo] = useState<ReplyTarget | null>(null)
+  const [attachmentError, setAttachmentError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!attachmentError) return
+    const id = setTimeout(() => setAttachmentError(null), 4000)
+    return () => clearTimeout(id)
+  }, [attachmentError])
 
   const profileCache = useRef<Map<string, Profile>>(new Map())
 
@@ -250,12 +257,21 @@ export function ChatWindow({
         </div>
       )}
 
+      {attachmentError && (
+        <div className="px-4 pb-1">
+          <div className="rounded-2xl bg-red-500/10 text-red-600 text-xs px-4 py-2 border border-red-500/20">
+            {attachmentError}
+          </div>
+        </div>
+      )}
+
       <MessageInput
         groupId={groupId}
         onSend={handleSend}
         replyTo={replyTo}
         onCancelReply={() => setReplyTo(null)}
         onTyping={setTyping}
+        onAttachmentError={setAttachmentError}
       />
     </div>
   )
