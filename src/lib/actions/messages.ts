@@ -72,13 +72,15 @@ export async function deleteMessage(messageId: string): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  const { error } = await supabase
+  const { error, count } = await supabase
     .from('messages')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', messageId)
     .eq('sender_id', user.id)
+    .select('id', { count: 'exact', head: true })
 
   if (error) throw error
+  if (!count || count === 0) throw new Error('Message not found or not owned by user')
 }
 
 export async function markMessagesAsRead(messageIds: string[]): Promise<void> {
