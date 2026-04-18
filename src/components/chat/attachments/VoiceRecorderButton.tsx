@@ -76,9 +76,9 @@ export function VoiceRecorderButton({ groupId, onUploaded, onError }: VoiceRecor
   return (
     <div className="flex items-center gap-3">
       {recorder.isRecording && (
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-primary-soft">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-coral-100">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-          <span className="font-mono text-xs text-brand-text">
+          <span className="font-mono text-xs text-ink-900">
             {formatDuration(recorder.durationMs)}
           </span>
           <div className="w-20">
@@ -99,7 +99,7 @@ export function VoiceRecorderButton({ groupId, onUploaded, onError }: VoiceRecor
         className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors select-none ${
           recorder.isRecording
             ? 'bg-red-500 text-white'
-            : 'bg-brand-primary text-white hover:bg-brand-primary-hover disabled:opacity-40'
+            : 'bg-coral-500 text-white hover:bg-coral-600 disabled:opacity-40'
         }`}
       >
         {recorder.isRecording

@@ -39,7 +39,7 @@ export function ShellClient({ sidebar, children }: ShellClientProps) {
 
   return (
     <SidebarDrawerContext.Provider value={{ isOpen, open, close, toggle }}>
-      <div className="flex h-screen overflow-hidden bg-brand-bg">
+      <div className="flex h-screen overflow-hidden bg-bg">
         <SidebarDrawer isOpen={isOpen} onClose={close}>
           {sidebar}
         </SidebarDrawer>

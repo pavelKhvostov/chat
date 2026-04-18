@@ -69,7 +69,7 @@ export function MessageList({
       <div ref={topRef} className="h-1" />
       {isLoadingMore && (
         <div className="flex justify-center py-2">
-          <div className="text-xs text-brand-text-muted">Загрузка...</div>
+          <div className="text-xs text-ink-500">Загрузка...</div>
         </div>
       )}
       {messages.map((message) => (

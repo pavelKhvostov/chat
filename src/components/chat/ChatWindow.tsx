@@ -213,12 +213,12 @@ export function ChatWindow({
   }, [groupId, currentUserId, currentUserName, replyTo])
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden bg-brand-bg">
+    <div className="flex flex-1 flex-col overflow-hidden bg-bg">
       <button
         type="button"
         onClick={toggleSidebar}
         aria-label="Открыть меню"
-        className="md:hidden flex items-center justify-center min-h-[44px] min-w-[44px] mx-2 mt-2 self-start rounded-xl text-brand-text-muted hover:text-brand-primary hover:bg-brand-primary-soft transition-colors"
+        className="md:hidden flex items-center justify-center min-h-[44px] min-w-[44px] mx-2 mt-2 self-start rounded-xl text-ink-500 hover:text-coral-500 hover:bg-coral-100 transition-colors"
       >
         <Menu size={22} strokeWidth={1.75} />
       </button>
@@ -243,14 +243,14 @@ export function ChatWindow({
 
       {typingUsers.length > 0 && (
         <div className="px-5 py-1 flex items-center gap-1">
-          <span className="text-xs text-brand-text-muted italic">
+          <span className="text-xs text-ink-500 italic">
             {typingUsers.length === 1
               ? `${typingUsers[0].displayName} печатает`
               : `${typingUsers.map(u => u.displayName).join(', ')} печатают`}
           </span>
           <span className="inline-flex gap-0.5 ml-0.5">
             {[0, 1, 2].map((i) => (
-              <span key={i} className="w-1 h-1 bg-brand-primary rounded-full animate-bounce"
+              <span key={i} className="w-1 h-1 bg-coral-500 rounded-full animate-bounce"
                 style={{ animationDelay: `${i * 0.15}s` }} />
             ))}
           </span>

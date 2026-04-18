@@ -3,38 +3,106 @@
 @tailwind utilities;
 
 :root {
-  --background: #EEF1FC;
-  --foreground: #1A1F3A;
+  /* Coral (primary accent) */
+  --coral-50: #FFF3ED;
+  --coral-100: #FFE4D9;
+  --coral-400: #FF8A65;
+  --coral-500: #FF6A3D;
+  --coral-600: #F2521F;
+
+  /* Navy (dark surfaces) */
+  --navy-500: #2E3E63;
+  --navy-700: #1B2742;
+  --navy-800: #111A2E;
+  --navy-900: #0B1220;
+
+  /* Ink (neutrals) */
+  --ink-50:  #F2F4FB;
+  --ink-100: #E8ECF5;
+  --ink-200: #D9DEEA;
+  --ink-300: #B8C0D0;
+  --ink-400: #8891A5;
+  --ink-500: #5B6478;
+  --ink-700: #2A3145;
+  --ink-900: #0E1320;
+
+  /* Surfaces */
+  --bg:        #EEF2FB;
+  --surface:   #FFFFFF;
+  --surface-2: #F7F9FE;
+  --stroke:    #E1E6F2;
+  --stroke-2:  #CCD3E5;
+
+  /* Semantic */
+  --success: #2EAE74;
+  --warning: #E8A83C;
+  --danger:  #E04E4E;
+  --info:    #3E74E8;
+
+  /* Radii */
+  --r-xs:   4px;
+  --r-sm:   6px;
+  --r-md:   8px;
+  --r-lg:   12px;
+  --r-pill: 9999px;
+
+  /* Shadows */
+  --sh-1: 0 1px 2px rgba(14,19,32,.06), 0 1px 1px rgba(14,19,32,.04);
+  --sh-2: 0 6px 18px rgba(14,19,32,.08), 0 2px 4px rgba(14,19,32,.04);
+  --sh-3: 0 24px 60px rgba(14,19,32,.12), 0 8px 20px rgba(14,19,32,.06);
+  --focus-ring: 0 0 0 3px rgba(255,106,61,.14);
+  --accent-glow: 0 2px 6px rgba(242,82,31,.35);
+}
+
+[data-theme="dark"] {
+  --bg:        #0B0F1C;
+  --surface:   #111A2E;
+  --surface-2: #0B1220;
+  --stroke:    rgba(255,255,255,.06);
+  --stroke-2:  rgba(255,255,255,.1);
+  --ink-900:   #E6EAF5;
+  --ink-700:   #C1C8DA;
+  --ink-500:   #8891A5;
+  --ink-400:   #8891A5;
+  --ink-100:   rgba(255,255,255,.06);
+  --ink-50:    rgba(255,255,255,.04);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--ink-900);
+  font-feature-settings: "ss01", "cv11";
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+  .font-num {
+    font-feature-settings: "tnum";
+  }
 }
 
 /* Тонкий скроллбар */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(26, 31, 58, 0.1);
+  background: var(--ink-200);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(26, 31, 58, 0.2);
+  background: var(--ink-300);
 }
 
-/* Outline на кнопках */
-button:focus-visible {
-  outline: 2px solid rgba(88, 101, 220, 0.5);
-  outline-offset: 2px;
+/* Focus ring — coral */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }

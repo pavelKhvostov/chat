@@ -1,14 +1,21 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Manrope, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ['latin', 'cyrillic'],
-  variable: '--font-inter',
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-manrope',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-jetbrains-mono',
 })
 
 export const metadata: Metadata = {
-  title: 'IntraChat',
+  title: 'VkusnoChat',
   description: 'Корпоративный мессенджер',
 }
 
@@ -18,8 +25,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ru" className={`${inter.variable}`}>
-      <body className="bg-brand-bg text-brand-text antialiased">
+    <html lang="ru" className={`${manrope.variable} ${jetbrainsMono.variable}`}>
+      <body className="bg-bg text-ink-900 antialiased font-sans">
         {children}
       </body>
     </html>

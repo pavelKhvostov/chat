@@ -73,8 +73,8 @@ export function VoiceAttachment({ path, metadata, isOwn = false }: VoiceAttachme
     ? metadata.duration / 1000
     : audioDuration ?? 0
 
-  const btnBg = isOwn ? 'bg-white/20 text-white hover:bg-white/30' : 'bg-brand-primary text-white hover:bg-brand-primary-hover'
-  const durColor = isOwn ? 'text-white/80' : 'text-brand-text-muted'
+  const btnBg = isOwn ? 'bg-white/20 text-white hover:bg-white/30' : 'bg-coral-500 text-white hover:bg-coral-600'
+  const durColor = isOwn ? 'text-white/80' : 'text-ink-500'
 
   return (
     <div className="flex items-center gap-3 min-w-[220px]">

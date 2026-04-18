@@ -42,21 +42,21 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete, onRea
     <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} group mb-2`}>
       {/* Имя отправителя */}
       {!isOwn && (
-        <span className="text-xs text-brand-primary font-semibold mb-1 ml-4">
+        <span className="text-[12px] text-coral-600 font-bold mb-1 ml-4">
           {message.sender?.display_name}
         </span>
       )}
 
       {/* Ряд: пузырь + кнопки */}
       <div className={`flex items-center gap-1 w-full ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-        <div className={`min-w-0 max-w-[72%] overflow-hidden px-4 py-2.5 rounded-3xl text-sm shadow-card ${
+        <div className={`min-w-0 max-w-[75%] overflow-hidden px-[14px] py-[10px] rounded-md text-[15px] ${
           isOwn
-            ? 'bg-brand-primary text-white rounded-br-md'
-            : 'bg-brand-surface text-brand-text rounded-bl-md'
+            ? 'bg-coral-500 text-white'
+            : 'bg-ink-100 text-ink-900'
         }`}>
           {message.reply && !isDeleted && (
-            <div className={`border-l-2 pl-2 mb-1.5 text-xs ${
-              isOwn ? 'border-white/50 text-white/80' : 'border-brand-primary/60 text-brand-text-muted'
+            <div className={`border-l-2 pl-2 mb-1.5 text-[13px] ${
+              isOwn ? 'border-white/50 text-white/85' : 'border-coral-500/60 text-ink-500'
             }`}>
               <p className="truncate">{message.reply.content}</p>
             </div>
@@ -69,17 +69,17 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete, onRea
             </div>
           )}
           {isDeleted
-            ? <span className={`italic text-xs ${isOwn ? 'text-white/60' : 'text-brand-text-subtle'}`}>
+            ? <span className={`italic text-[13px] ${isOwn ? 'text-white/60' : 'text-ink-400'}`}>
                 Сообщение удалено
               </span>
             : message.content
-              ? <span className="leading-relaxed break-all whitespace-pre-wrap">{message.content}</span>
+              ? <span className="leading-[1.5] break-all whitespace-pre-wrap">{message.content}</span>
               : null
           }
           <div className={`flex items-center justify-end gap-1 mt-1 ${
-            isOwn ? 'text-white/75' : 'text-brand-text-subtle'
+            isOwn ? 'text-white/75' : 'text-ink-400'
           }`}>
-            <span className="font-mono text-[10px]">
+            <span className="font-mono text-[10px] font-num">
               {new Date(message.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
             </span>
             {isOwn && !isDeleted && (
@@ -95,14 +95,14 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete, onRea
           <div className="hidden group-hover:flex gap-0.5 shrink-0">
             <button
               onClick={() => onReply(message)}
-              className="p-1.5 rounded-full bg-brand-surface shadow-card text-brand-text-muted hover:text-brand-primary transition-colors"
+              className="p-1.5 rounded-full bg-surface shadow-sh-1 text-ink-500 hover:text-coral-500 transition-colors"
             >
               <Reply size={14} strokeWidth={1.75} />
             </button>
             {isOwn && (
               <button
                 onClick={handleDelete}
-                className="p-1.5 rounded-full bg-brand-surface shadow-card text-brand-text-muted hover:text-rose-500 transition-colors"
+                className="p-1.5 rounded-full bg-surface shadow-sh-1 text-ink-500 hover:text-rose-500 transition-colors"
               >
                 <Trash2 size={14} strokeWidth={1.75} />
               </button>
@@ -120,8 +120,8 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete, onRea
               onClick={() => onReaction(message.id, emoji)}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs transition-colors ${
                 reacted
-                  ? 'bg-brand-primary text-white'
-                  : 'bg-brand-surface text-brand-text-muted shadow-card hover:bg-brand-primary-soft'
+                  ? 'bg-coral-500 text-white'
+                  : 'bg-surface text-ink-500 shadow-sh-1 hover:bg-coral-100'
               }`}
             >
               {emoji} <span className="font-semibold">{count}</span>
@@ -137,7 +137,7 @@ export function MessageBubble({ message, currentUserId, onReply, onDelete, onRea
             <button
               key={emoji}
               onClick={() => onReaction(message.id, emoji)}
-              className="w-7 h-7 rounded-full bg-brand-surface shadow-card hover:bg-brand-primary-soft flex items-center justify-center text-sm transition-colors"
+              className="w-7 h-7 rounded-full bg-surface shadow-sh-1 hover:bg-coral-100 flex items-center justify-center text-sm transition-colors"
             >
               {emoji}
             </button>

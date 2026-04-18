@@ -47,7 +47,7 @@ export function VideoCircleAttachment({ path, metadata, isOwn = false }: VideoCi
     ? metadata.duration / 1000
     : videoDuration ?? 0
 
-  const durColor = isOwn ? 'text-white/80' : 'text-brand-text-muted'
+  const durColor = isOwn ? 'text-white/80' : 'text-ink-500'
 
   return (
     <div className="flex flex-col items-center gap-1.5">
@@ -78,7 +78,7 @@ export function VideoCircleAttachment({ path, metadata, isOwn = false }: VideoCi
         )}
         {!playing && (
           <span className="absolute inset-0 flex items-center justify-center bg-black/30">
-            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-brand-text">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-ink-900">
               <Play size={20} strokeWidth={2} className="ml-0.5" />
             </span>
           </span>

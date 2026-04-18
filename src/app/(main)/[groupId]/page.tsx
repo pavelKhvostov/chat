@@ -43,19 +43,19 @@ export default async function GroupPage({ params }: Props) {
     .single()
 
   return (
-    <div className="flex h-full flex-col bg-brand-bg">
+    <div className="flex h-full flex-col bg-surface-2">
       {/* Шапка чата */}
-      <header className="flex items-center gap-3 bg-brand-primary px-5 py-4 flex-shrink-0 shadow-card">
-        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white">
-          <Hash size={18} strokeWidth={1.75} />
+      <header className="flex items-center gap-3 bg-surface border-b border-stroke px-5 py-3 flex-shrink-0">
+        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-coral-100 text-coral-600">
+          <Hash size={16} strokeWidth={1.75} />
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-base font-semibold text-white leading-tight truncate">
+          <h1 className="text-sm font-bold text-ink-900 leading-tight truncate">
             {group.name}
           </h1>
-          <p className="text-xs text-white/70 leading-tight flex items-center gap-1 mt-0.5">
-            <Users size={11} strokeWidth={1.75} />
-            {memberCount ?? 0} участников
+          <p className="text-[11px] text-success leading-tight flex items-center gap-1 mt-0.5">
+            <Users size={11} strokeWidth={1.75} className="text-ink-400" />
+            <span className="text-ink-500">{memberCount ?? 0} участников · онлайн</span>
           </p>
         </div>
       </header>

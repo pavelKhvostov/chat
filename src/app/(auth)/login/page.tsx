@@ -19,13 +19,13 @@ export default function LoginPage() {
 
   return (
     <div className="w-full max-w-sm px-6">
-      <div className="rounded-3xl bg-brand-surface shadow-card p-8">
+      <div className="rounded-3xl bg-surface shadow-sh-1 p-8">
         {/* Логотип */}
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-brand-text">
+          <h1 className="text-2xl font-semibold tracking-tight text-ink-900">
             IntraChat
           </h1>
-          <p className="mt-1 text-sm text-brand-text-muted">
+          <p className="mt-1 text-sm text-ink-500">
             Корпоративный мессенджер
           </p>
         </div>
@@ -35,7 +35,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="email"
-              className="block text-xs font-semibold text-brand-text-muted mb-1.5 uppercase tracking-wide"
+              className="block text-xs font-semibold text-ink-500 mb-1.5 uppercase tracking-wide"
             >
               Email
             </label>
@@ -45,7 +45,7 @@ export default function LoginPage() {
               type="email"
               required
               autoComplete="email"
-              className="w-full rounded-xl bg-brand-bg border border-brand-border px-4 py-3 text-sm text-brand-text placeholder-brand-text-subtle outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 transition-colors"
+              className="w-full rounded-xl bg-bg border border-stroke px-4 py-3 text-sm text-ink-900 placeholder-ink-400 outline-none focus:border-coral-500 focus:ring-2 focus:ring-coral-500/20 transition-colors"
               placeholder="you@company.com"
             />
           </div>
@@ -53,7 +53,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="password"
-              className="block text-xs font-semibold text-brand-text-muted mb-1.5 uppercase tracking-wide"
+              className="block text-xs font-semibold text-ink-500 mb-1.5 uppercase tracking-wide"
             >
               Пароль
             </label>
@@ -63,7 +63,7 @@ export default function LoginPage() {
               type="password"
               required
               autoComplete="current-password"
-              className="w-full rounded-xl bg-brand-bg border border-brand-border px-4 py-3 text-sm text-brand-text placeholder-brand-text-subtle outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 transition-colors"
+              className="w-full rounded-xl bg-bg border border-stroke px-4 py-3 text-sm text-ink-900 placeholder-ink-400 outline-none focus:border-coral-500 focus:ring-2 focus:ring-coral-500/20 transition-colors"
               placeholder="••••••••"
             />
           </div>
@@ -75,7 +75,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-brand-primary hover:bg-brand-primary-hover disabled:opacity-50 disabled:cursor-not-allowed px-4 py-3 text-sm font-semibold text-white transition-colors shadow-card"
+            className="w-full rounded-xl bg-coral-500 hover:bg-coral-600 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-3 text-sm font-semibold text-white transition-colors shadow-sh-1"
           >
             {loading ? 'Вход...' : 'Войти'}
           </button>

@@ -37,13 +37,13 @@ export function FileAttachment({
 
   const iconWrap = isOwn
     ? 'bg-white/20 text-white'
-    : 'bg-brand-primary-soft text-brand-primary'
+    : 'bg-coral-100 text-coral-500'
   const cardBg = isOwn
     ? 'bg-white/10 hover:bg-white/15'
-    : 'bg-brand-surface shadow-card hover:shadow-card-hover'
-  const nameColor = isOwn ? 'text-white' : 'text-brand-text'
-  const sizeColor = isOwn ? 'text-white/70' : 'text-brand-text-muted'
-  const chevronColor = isOwn ? 'text-white/80' : 'text-brand-primary'
+    : 'bg-surface shadow-sh-1 hover:shadow-sh-2'
+  const nameColor = isOwn ? 'text-white' : 'text-ink-900'
+  const sizeColor = isOwn ? 'text-white/70' : 'text-ink-500'
+  const chevronColor = isOwn ? 'text-white/80' : 'text-coral-500'
 
   return (
     <button
@@ -51,7 +51,7 @@ export function FileAttachment({
       onClick={handleDownload}
       disabled={state === 'loading'}
       aria-label={`Скачать файл ${fileName}`}
-      className={`flex items-center gap-3 min-h-[44px] max-w-[280px] px-3 py-2 rounded-2xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary ${cardBg}`}
+      className={`flex items-center gap-3 min-h-[44px] max-w-[280px] px-3 py-2 rounded-2xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-coral-500 ${cardBg}`}
     >
       <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${iconWrap}`}>
         <FileText size={18} strokeWidth={1.75} />

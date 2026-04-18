@@ -36,8 +36,8 @@ interface WaveformProps {
 
 export function Waveform({ amplitudes, progress = 0, isOwn = false }: WaveformProps) {
   const normalized = normalize(amplitudes)
-  const playedColor = isOwn ? 'bg-white' : 'bg-brand-primary'
-  const unplayedColor = isOwn ? 'bg-white/40' : 'bg-brand-primary/30'
+  const playedColor = isOwn ? 'bg-white' : 'bg-coral-500'
+  const unplayedColor = isOwn ? 'bg-white/40' : 'bg-coral-500/30'
 
   return (
     <div className="flex items-center gap-[2px] h-8" aria-hidden="true">

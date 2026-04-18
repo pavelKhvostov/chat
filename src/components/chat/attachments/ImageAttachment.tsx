@@ -28,13 +28,13 @@ export function ImageAttachment({ path, fileName }: ImageAttachmentProps) {
 
   if (state.status === 'loading') {
     return (
-      <div className="w-[240px] h-[180px] rounded-2xl bg-brand-primary-soft animate-pulse" />
+      <div className="w-[240px] h-[180px] rounded-2xl bg-coral-100 animate-pulse" />
     )
   }
 
   if (state.status === 'error') {
     return (
-      <div className="px-3 py-2 rounded-2xl bg-brand-primary-soft text-xs text-brand-text-muted">
+      <div className="px-3 py-2 rounded-2xl bg-coral-100 text-xs text-ink-500">
         Не удалось загрузить изображение
       </div>
     )

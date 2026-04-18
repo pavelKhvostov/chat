@@ -181,7 +181,7 @@ export function VideoCircleRecorder({ groupId, onUploaded, onError }: VideoCircl
         onMouseLeave={endRecording}
         onTouchStart={(e) => { e.preventDefault(); void beginRecording() }}
         onTouchEnd={(e) => { e.preventDefault(); endRecording() }}
-        className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-primary text-white hover:bg-brand-primary-hover transition-colors disabled:opacity-40 select-none"
+        className="flex h-12 w-12 items-center justify-center rounded-full bg-coral-500 text-white hover:bg-coral-600 transition-colors disabled:opacity-40 select-none"
       >
         {recording
           ? <Square size={18} strokeWidth={2} />
