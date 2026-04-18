@@ -69,9 +69,14 @@ export function ChatWindow({
         } : null
 
         if (msg.sender_id === currentUserId) {
-          const withoutTemp = prev.filter(
-            (m) => !(m.id.startsWith('temp-') && m.content === msg.content && m.sender_id === currentUserId)
-          )
+          let removed = false
+          const withoutTemp = prev.filter((m) => {
+            if (!removed && m.id.startsWith('temp-') && m.content === msg.content && m.sender_id === currentUserId) {
+              removed = true
+              return false
+            }
+            return true
+          })
           if (withoutTemp.some((m) => m.id === msg.id)) return withoutTemp
           return [...withoutTemp, { ...msg, sender, reply, reactions: [], reads: [] } as MessageWithRelations]
         } else {
