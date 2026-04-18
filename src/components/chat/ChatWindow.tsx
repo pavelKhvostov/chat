@@ -7,6 +7,7 @@ import {
   sendMessage,
   markMessagesAsRead,
 } from '@/lib/actions/messages'
+import { toggleReaction } from '@/lib/actions/reactions'
 import { useRealtime } from '@/hooks/useRealtime'
 import { useTyping } from '@/hooks/useTyping'
 import { MessageList } from './MessageList'
@@ -53,7 +54,7 @@ export function ChatWindow({
     return profileCache.current.get(userId) ?? { id: userId, display_name: 'Участник', avatar_url: null }
   }, [])
 
-  useRealtime({
+  const { broadcastReaction } = useRealtime({
     groupId,
     onInsert: useCallback((msg) => {
       const sender = msg.sender_id === currentUserId
@@ -89,20 +90,15 @@ export function ChatWindow({
       setMessages((prev) => prev.map((m) => m.id === id ? { ...m, deleted_at: new Date().toISOString() } : m))
     }, []),
 
-    onRead: useCallback(({ message_id, user_id }: { message_id: string; user_id: string }) => {
-      if (user_id === currentUserId) return
-      setMessages((prev) => {
-        const target = prev.find((m) => m.id === message_id)
-        if (!target || target.reads.some((r) => r.user_id === user_id)) return prev
-        return prev.map((m) => m.id === message_id ? { ...m, reads: [...m.reads, { user_id }] } : m)
-      })
-    }, [currentUserId]),
-
     onReactionAdd: useCallback((reaction) => {
       setMessages((prev) => prev.map((m) => {
         if (m.id !== reaction.message_id) return m
-        if (m.reactions.some((r) => r.id === reaction.id)) return m
-        return { ...m, reactions: [...m.reactions, reaction] }
+        // Заменяем оптимистичную реакцию (opt-*) реальной, либо добавляем если нет дубля
+        const withoutOptimistic = m.reactions.filter(
+          (r) => !(r.user_id === reaction.user_id && r.emoji === reaction.emoji && r.id.startsWith('opt-'))
+        )
+        if (withoutOptimistic.some((r) => r.id === reaction.id)) return { ...m, reactions: withoutOptimistic }
+        return { ...m, reactions: [...withoutOptimistic, reaction] }
       }))
     }, []),
 
@@ -141,6 +137,46 @@ export function ChatWindow({
     setMessages((prev) => prev.map((m) => m.id === id ? { ...m, deleted_at: new Date().toISOString() } : m))
   }, [])
 
+  const handleReaction = useCallback(async (messageId: string, emoji: string) => {
+    const tempId = `opt-${Date.now()}`
+    let wasRemove = false
+
+    setMessages((prev) => prev.map((m) => {
+      if (m.id !== messageId) return m
+      const alreadyReacted = m.reactions.some((r) => r.emoji === emoji && r.user_id === currentUserId)
+      wasRemove = alreadyReacted
+      if (alreadyReacted) {
+        return { ...m, reactions: m.reactions.filter((r) => !(r.emoji === emoji && r.user_id === currentUserId)) }
+      } else {
+        const fakeReaction = { id: tempId, message_id: messageId, emoji, user_id: currentUserId, created_at: new Date().toISOString() }
+        return { ...m, reactions: [...m.reactions, fakeReaction] }
+      }
+    }))
+
+    try {
+      const result = await toggleReaction(messageId, emoji)
+      if (result.action === 'added') {
+        // Заменяем opt- реальной реакцией
+        setMessages((prev) => prev.map((m) => {
+          if (m.id !== messageId) return m
+          return { ...m, reactions: m.reactions.map((r) => r.id === tempId ? result.reaction : r) }
+        }))
+        broadcastReaction('reaction_add', result.reaction)
+      } else {
+        broadcastReaction('reaction_remove', { id: result.reaction.id, message_id: messageId, emoji, user_id: currentUserId })
+      }
+    } catch {
+      // Откат при ошибке
+      setMessages((prev) => prev.map((m) => {
+        if (m.id !== messageId) return m
+        if (wasRemove) {
+          return m // состояние уже без реакции, оставляем
+        }
+        return { ...m, reactions: m.reactions.filter((r) => r.id !== tempId) }
+      }))
+    }
+  }, [currentUserId, broadcastReaction])
+
   const handleSend = useCallback(async (text: string, replyToId?: string) => {
     const tempId = `temp-${Date.now()}`
     const optimisticMsg: MessageWithRelations = {
@@ -169,11 +205,16 @@ export function ChatWindow({
         isLoadingMore={isLoadingMore}
         onLoadMore={loadMore}
         onDelete={handleDelete}
-        onReply={(msg) => setReplyTo({
-          id: msg.id,
-          content: msg.content ?? '',
-          senderName: msg.sender?.display_name ?? '',
-        })}
+        onReaction={handleReaction}
+        onReply={(msg) => {
+          if (!msg.id.startsWith('temp-')) {
+            setReplyTo({
+              id: msg.id,
+              content: msg.content ?? '',
+              senderName: msg.sender?.display_name ?? '',
+            })
+          }
+        }}
       />
 
       {typingUsers.length > 0 && (
