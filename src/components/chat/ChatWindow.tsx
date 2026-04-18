@@ -78,10 +78,10 @@ export function ChatWindow({
             return true
           })
           if (withoutTemp.some((m) => m.id === msg.id)) return withoutTemp
-          return [...withoutTemp, { ...msg, sender, reply, reactions: [], reads: [] } as MessageWithRelations]
+          return [...withoutTemp, { ...msg, sender, reply, reactions: [], reads: [], attachments: [] } as MessageWithRelations]
         } else {
           if (prev.some((m) => m.id === msg.id)) return prev
-          return [...prev, { ...msg, sender, reply, reactions: [], reads: [] } as MessageWithRelations]
+          return [...prev, { ...msg, sender, reply, reactions: [], reads: [], attachments: [] } as MessageWithRelations]
         }
       })
       if (msg.sender_id !== currentUserId) markMessagesAsRead([msg.id])
@@ -190,7 +190,7 @@ export function ChatWindow({
       created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
       sender: { id: currentUserId, display_name: currentUserName, avatar_url: null },
       reply: replyTo && replyToId ? { id: replyToId, content: replyTo.content, sender: { display_name: replyTo.senderName } } : null,
-      reactions: [], reads: [],
+      reactions: [], reads: [], attachments: [],
     }
     setMessages((prev) => [...prev, optimisticMsg])
     setReplyTo(null)

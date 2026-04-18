@@ -10,6 +10,7 @@ export type MessageWithRelations = Tables<'messages'> & {
   }) | null
   reactions: Pick<Tables<'message_reactions'>, 'id' | 'emoji' | 'user_id'>[]
   reads: Pick<Tables<'message_reads'>, 'user_id'>[]
+  attachments: Pick<Tables<'message_attachments'>, 'id' | 'path' | 'type' | 'file_name' | 'file_size' | 'metadata'>[]
 }
 
 const PAGE_SIZE = 50
@@ -27,7 +28,8 @@ export async function fetchMessages(
       sender:profiles!sender_id(id, display_name, avatar_url),
       reply:messages!reply_to(id, content, sender:profiles!sender_id(display_name)),
       reactions:message_reactions(id, emoji, user_id),
-      reads:message_reads(user_id)
+      reads:message_reads(user_id),
+      attachments:message_attachments(id, path, type, file_name, file_size, metadata)
     `)
     .eq('group_id', groupId)
     .order('created_at', { ascending: false })
