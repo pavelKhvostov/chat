@@ -16,11 +16,14 @@
 <decisions>
 ## Implementation Decisions
 
-### Тема дизайна — КРИТИЧЕСКОЕ РЕШЕНИЕ
-- **D-01:** Переходим на **светлую тему** начиная с Phase 5. Фон: `#EEF2FF`, акцентный цвет: `#4A7BF5`. Tailwind config обновляется с кастомным цветом `brand`.
-- **D-02:** Рефакторинг **всех существующих компонентов** в этой же фазе: `MessageBubble`, `MessageList`, `MessageInput`, `ChatWindow`, `Sidebar`, страница login. Один PR — всё согласованное.
-- **D-03:** Новые компоненты вложений сразу пишутся в светлой теме.
-- **D-04:** Цветовая система: пузыри входящих — белые (`bg-white`), пузыри исходящих — `bg-[#4A7BF5] text-white`. Фон страницы `bg-[#EEF2FF]`, sidebar чуть темнее `bg-[#E3E8F8]`.
+### Тема дизайна — УЖЕ РЕАЛИЗОВАНА (superseded)
+> D-01..D-04 вытеснены фактическим деплоем Lyra-палитры (commit 94fe18c, 2026-04-18).
+> Актуальные токены в `tailwind.config.ts`: `brand-bg` = `#EEF1FC`, `brand-primary` = `#5865DC`, `brand-surface` = `#FFFFFF`, `brand-text` = `#1A1F3A`, `brand-text-muted` = `#8E94B0`, `brand-border` = `#E1E5F2`, `shadow-card`.
+> Плагины Phase 5 ИСПОЛЬЗУЮТ эти токены, не пересоздают их и НЕ хардкодят hex-значения.
+- **D-01 (superseded):** Светлая тема реализована. Фон `#EEF1FC`, акцент `#5865DC`.
+- **D-02 (superseded):** Рефакторинг MessageBubble, MessageList, MessageInput, ChatWindow, Sidebar, login завершён в commit 94fe18c.
+- **D-03:** Новые компоненты вложений (AttachmentPopup, ImageAttachment, FileAttachment, VoiceAttachment, VideoCircleAttachment, VoiceRecorderButton, VideoCircleRecorder, ImageLightbox) ИСПОЛЬЗУЮТ `brand-*` токены.
+- **D-04 (superseded):** Пузыри исходящих — `bg-brand-primary text-white`, входящих — `bg-brand-surface text-brand-text`. Не вводить новые hex'ы в компоненты.
 
 ### Панель вложений
 - **D-05:** В `MessageInput` слева от поля ввода — одна иконка `+` (или скрепка). По клику — **popup-меню** с 4 пунктами: 🖼 Фото, 📎 Файл, 🎤 Голос, ⬤ Видео-кружок.
