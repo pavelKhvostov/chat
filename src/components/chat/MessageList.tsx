@@ -12,6 +12,7 @@ interface MessageListProps {
   onLoadMore: () => void
   onReply: (message: MessageWithRelations) => void
   onDelete: (id: string) => void
+  onReaction: (messageId: string, emoji: string) => void
 }
 
 export function MessageList({
@@ -22,6 +23,7 @@ export function MessageList({
   onLoadMore,
   onReply,
   onDelete,
+  onReaction,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLDivElement>(null)
@@ -67,7 +69,7 @@ export function MessageList({
       <div ref={topRef} className="h-1" />
       {isLoadingMore && (
         <div className="flex justify-center py-2">
-          <div className="text-xs text-white/30">Загрузка...</div>
+          <div className="text-xs text-brand-text-muted">Загрузка...</div>
         </div>
       )}
       {messages.map((message) => (
@@ -77,6 +79,7 @@ export function MessageList({
           currentUserId={currentUserId}
           onReply={onReply}
           onDelete={onDelete}
+          onReaction={onReaction}
         />
       ))}
       <div ref={bottomRef} />

@@ -202,7 +202,7 @@ export function ChatWindow({
   }, [groupId, currentUserId, currentUserName, replyTo])
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden bg-[#0f0f1a]">
+    <div className="flex flex-1 flex-col overflow-hidden bg-brand-bg">
       <MessageList
         messages={messages}
         currentUserId={currentUserId}
@@ -223,15 +223,15 @@ export function ChatWindow({
       />
 
       {typingUsers.length > 0 && (
-        <div className="px-4 py-1 flex items-center gap-1">
-          <span className="text-xs text-white/40 italic">
+        <div className="px-5 py-1 flex items-center gap-1">
+          <span className="text-xs text-brand-text-muted italic">
             {typingUsers.length === 1
               ? `${typingUsers[0].displayName} печатает`
               : `${typingUsers.map(u => u.displayName).join(', ')} печатают`}
           </span>
           <span className="inline-flex gap-0.5 ml-0.5">
             {[0, 1, 2].map((i) => (
-              <span key={i} className="w-1 h-1 bg-white/40 rounded-full animate-bounce"
+              <span key={i} className="w-1 h-1 bg-brand-primary rounded-full animate-bounce"
                 style={{ animationDelay: `${i * 0.15}s` }} />
             ))}
           </span>

@@ -14,27 +14,13 @@ interface ChatRowProps {
   isSubgroup?: boolean
 }
 
-// Генерирует инициалы и цвет аватара из названия группы
-function getAvatarProps(name: string) {
-  const initials = name
+function getAvatarInitials(name: string) {
+  return name
     .split(' ')
     .slice(0, 2)
     .map(w => w[0])
     .join('')
     .toUpperCase()
-
-  const colors = [
-    'bg-indigo-600',
-    'bg-violet-600',
-    'bg-blue-600',
-    'bg-cyan-600',
-    'bg-teal-600',
-    'bg-emerald-600',
-    'bg-amber-600',
-    'bg-rose-600',
-  ]
-  const idx = name.charCodeAt(0) % colors.length
-  return { initials, color: colors[idx] }
 }
 
 export function ChatRow({
@@ -46,22 +32,22 @@ export function ChatRow({
 }: ChatRowProps) {
   const pathname = usePathname()
   const isActive = pathname === `/${group.id}`
-  const { initials, color } = getAvatarProps(group.name)
+  const initials = getAvatarInitials(group.name)
 
   return (
     <Link
       href={`/${group.id}`}
       className={`
-        flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-150 cursor-pointer
-        ${isSubgroup ? 'ml-8' : ''}
-        ${isActive ? 'bg-indigo-600/15' : 'hover:bg-white/[0.04]'}
+        flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors duration-150 cursor-pointer
+        ${isSubgroup ? 'ml-6' : ''}
+        ${isActive ? 'bg-white shadow-card' : 'hover:bg-white/10'}
       `}
     >
       {/* Аватар */}
       <div className={`
-        flex-shrink-0 flex items-center justify-center rounded-full text-white font-medium
+        flex-shrink-0 flex items-center justify-center rounded-full font-semibold
         ${isSubgroup ? 'h-8 w-8 text-xs' : 'h-11 w-11 text-sm'}
-        ${color}
+        ${isActive ? 'bg-brand-primary text-white' : 'bg-white/25 text-white'}
       `}>
         {initials}
       </div>
@@ -72,33 +58,39 @@ export function ChatRow({
           <span className={`
             truncate font-medium leading-tight
             ${isSubgroup ? 'text-xs' : 'text-sm'}
-            ${isActive ? 'text-white' : 'text-white/90'}
+            ${isActive ? 'text-brand-text' : 'text-white'}
           `}>
             {group.name}
           </span>
           {lastMessageTime && (
             <span className={`
-              flex-shrink-0 text-xs
-              ${unreadCount > 0 ? 'text-indigo-400' : 'text-white/30'}
+              flex-shrink-0 text-xs font-mono
+              ${isActive ? 'text-brand-text-muted' : 'text-white/60'}
             `}>
               {lastMessageTime}
             </span>
           )}
         </div>
         {lastMessageText && (
-          <p className="truncate text-xs text-white/40 mt-0.5 leading-tight">
+          <p className={`truncate text-xs mt-0.5 leading-tight ${
+            isActive ? 'text-brand-text-muted' : 'text-white/60'
+          }`}>
             {lastMessageText}
           </p>
         )}
         {!lastMessageText && !isSubgroup && (
-          <p className="text-xs text-white/20 mt-0.5">Нет сообщений</p>
+          <p className={`text-xs mt-0.5 ${
+            isActive ? 'text-brand-text-subtle' : 'text-white/45'
+          }`}>
+            Нет сообщений
+          </p>
         )}
       </div>
 
       {/* Счётчик непрочитанных */}
       {unreadCount > 0 && (
-        <div className="flex-shrink-0 flex items-center justify-center h-5 min-w-5 rounded-full bg-indigo-500 px-1.5">
-          <span className="text-[10px] font-semibold text-white leading-none">
+        <div className="flex-shrink-0 flex items-center justify-center h-5 min-w-5 rounded-full bg-white px-1.5">
+          <span className="text-[10px] font-semibold text-brand-primary leading-none">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         </div>

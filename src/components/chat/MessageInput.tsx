@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { X, Send } from 'lucide-react'
+import { X, Send, Paperclip, Smile } from 'lucide-react'
 
 interface ReplyTarget {
   id: string
@@ -46,7 +46,6 @@ export function MessageInput({
       onCancelReply()
       onTyping(false)
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
-      // Сброс высоты textarea
       if (inputRef.current) {
         inputRef.current.style.height = 'auto'
       }
@@ -63,47 +62,63 @@ export function MessageInput({
   }
 
   return (
-    <div className="flex-shrink-0 border-t border-white/[0.06] bg-[#17212b] px-4 py-3">
+    <div className="flex-shrink-0 bg-brand-bg px-4 py-3">
       {/* Reply preview */}
       {replyTo && (
-        <div className="flex items-center gap-2 mb-2 px-3 py-1.5 rounded-xl bg-white/5 border-l-2 border-indigo-400">
+        <div className="flex items-center gap-2 mb-2 px-3.5 py-2 rounded-2xl bg-brand-surface shadow-card border-l-4 border-brand-primary">
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-indigo-300 font-medium">{replyTo.senderName}</p>
-            <p className="text-xs text-gray-400 truncate">{replyTo.content}</p>
+            <p className="text-xs text-brand-primary font-semibold">{replyTo.senderName}</p>
+            <p className="text-xs text-brand-text-muted truncate">{replyTo.content}</p>
           </div>
           <button
             onClick={onCancelReply}
-            className="text-white/30 hover:text-white/60 flex-shrink-0"
+            className="text-brand-text-muted hover:text-brand-text flex-shrink-0"
           >
-            <X size={14} strokeWidth={1.5} />
+            <X size={16} strokeWidth={1.75} />
           </button>
         </div>
       )}
 
       {/* Input row */}
-      <div className="flex items-end gap-3">
-        <textarea
-          ref={inputRef}
-          value={text}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          placeholder="Сообщение..."
-          rows={1}
-          disabled={isSending}
-          className="flex-1 resize-none bg-white/[0.06] text-white/90 placeholder-white/25 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50 min-h-[42px] max-h-[120px] leading-relaxed"
-          style={{ height: 'auto' }}
-          onInput={(e) => {
-            const el = e.currentTarget
-            el.style.height = 'auto'
-            el.style.height = `${Math.min(el.scrollHeight, 120)}px`
-          }}
-        />
+      <div className="flex items-end gap-2">
+        <div className="flex flex-1 items-end gap-2 bg-brand-surface shadow-card rounded-3xl pl-4 pr-2 py-1.5">
+          <button
+            type="button"
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center text-brand-text-muted hover:text-brand-primary transition-colors"
+            title="Прикрепить"
+          >
+            <Paperclip size={18} strokeWidth={1.75} />
+          </button>
+          <textarea
+            ref={inputRef}
+            value={text}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Сообщение..."
+            rows={1}
+            disabled={isSending}
+            className="flex-1 resize-none bg-transparent text-brand-text placeholder-brand-text-subtle text-sm focus:outline-none py-2 min-h-[38px] max-h-[120px] leading-relaxed"
+            style={{ height: 'auto' }}
+            onInput={(e) => {
+              const el = e.currentTarget
+              el.style.height = 'auto'
+              el.style.height = `${Math.min(el.scrollHeight, 120)}px`
+            }}
+          />
+          <button
+            type="button"
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center text-brand-text-muted hover:text-brand-primary transition-colors"
+            title="Эмодзи"
+          >
+            <Smile size={18} strokeWidth={1.75} />
+          </button>
+        </div>
         <button
           onClick={handleSend}
           disabled={!text.trim() || isSending}
-          className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white disabled:opacity-40 hover:bg-indigo-500 transition-colors duration-150"
+          className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-white disabled:opacity-40 hover:bg-brand-primary-hover transition-colors duration-150 shadow-card"
         >
-          <Send size={16} strokeWidth={1.5} />
+          <Send size={18} strokeWidth={1.75} />
         </button>
       </div>
     </div>

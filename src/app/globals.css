@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #0f0f1a;
-  --foreground: #ffffff;
+  --background: #EEF1FC;
+  --foreground: #1A1F3A;
 }
 
 body {
@@ -18,23 +18,23 @@ body {
   }
 }
 
-/* Тонкий скроллбар в стиле Telegram */
+/* Тонкий скроллбар */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
+  background: rgba(26, 31, 58, 0.1);
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(26, 31, 58, 0.2);
 }
 
-/* Убрать outline на кнопках */
+/* Outline на кнопках */
 button:focus-visible {
-  outline: 2px solid rgba(99, 102, 241, 0.5);
+  outline: 2px solid rgba(88, 101, 220, 0.5);
   outline-offset: 2px;
 }

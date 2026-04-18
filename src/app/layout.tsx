@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" className={`${inter.variable}`}>
-      <body className="bg-[#0f0f1a] text-white antialiased">
+      <body className="bg-brand-bg text-brand-text antialiased">
         {children}
       </body>
     </html>
